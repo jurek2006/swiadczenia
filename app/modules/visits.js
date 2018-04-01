@@ -11,9 +11,56 @@ class Visit{
 }
 
 const visits = [];
+const dataWithErrors = []; //wiersze danych, których nie udało się skonwertować na dane wizyty
+const dataWithWarnings = []; //wiersze danych, które udało się skonwertować na dane wizyty, jednak wystąpiły pewne wątpliwości - stąd ostrzeżenia
 
 const add = (date, pesel, icd10, patientFirstName, patientLastName, staff, visitName) => {
-    visits.push(new Visit(date, pesel, icd10, patientFirstName, patientLastName, staff, visitName));
+// dodaje wizytę, jako instancję klasy Visit do tablicy visits
+// jeśli dane wizyty są niepoprawne dodaje je do dataWithErrors
+// dane z ostrzeżeniami dodawane są do wizyt ale także do tablicy dataWithWarnings
+
+    // zmienna zliczające ile poprawnie zwalidowanych rozpoznań jest w tablicy - argumencie icd10
+    const icd10validatedCount = typeof icd10 === 'object' ? icd10.filter(currCode => (typeof currCode === 'string' && currCode.trim().length > 2 )).length : 0;
+
+    // SPRAWDZENIE BŁĘDU DANYCH
+    if(typeof date === 'string' && date.trim().length === 10 
+    && typeof pesel === 'string' && pesel.trim().length === 11 
+    && icd10validatedCount > 0
+    && typeof patientFirstName === 'string' && patientFirstName.trim().length > 0
+    && typeof patientLastName === 'string' && patientLastName.trim().length === 1
+    && typeof staff === 'string' && staff.trim().length > 0 
+    && typeof visitName === 'string' && visitName.trim().length > 0){
+        visits.push(new Visit(date, pesel, icd10, patientFirstName, patientLastName, staff, visitName));
+
+        // jeśli liczba zwalidowanych rozpoznań w tablicy argumentu icd10 jest różna od liczby zadanych w niej argumentów
+        // czyli, że były rozpoznania, które nie przeszły walidacji - dane są dodawane do tablicy dataWithWarnings
+        if(icd10validatedCount < icd10.length){
+            dataWithWarnings.push({
+                date,
+                pesel,
+                icd10,
+                patientFirstName,
+                patientLastName,
+                staff,
+                visitName
+            });
+        }
+
+        return true;
+} else {
+    
+    dataWithErrors.push({
+        date,
+        pesel,
+        icd10,
+        patientFirstName,
+        patientLastName,
+        staff,
+        visitName
+    });
+    return false;
+}
+    
 };
 
 const importManyFromArray = (rawDataArr, hasHeader = true) => {
@@ -75,4 +122,21 @@ const showAll = () => {
     }
 }
 
-module.exports = {add, importManyFromArray, showAll};
+const getAll = () => {
+// zwraca "shallow copy" tablicy visits
+    return visits.slice();
+}
+
+const getData = {
+    withErrors: () => dataWithErrors.slice(),
+    withWarnings: () => dataWithWarnings.slice(),
+}
+
+const removeAll = () => {
+// usuwa wszystkie elementy tablicy visits, czyści także tablice dataWithErrors i dataWithWarnings
+    while( (visits.shift()) !== undefined ) { };
+    while( (dataWithErrors.shift()) !== undefined ) { };
+    while( (dataWithWarnings.shift()) !== undefined ) { };
+}
+
+module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData};
