@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 class Visit{
     constructor(date, pesel, icd10, patientFirstName, patientLastName, staff, visitName){
         this.date = date;
@@ -139,4 +141,15 @@ const removeAll = () => {
     while( (dataWithWarnings.shift()) !== undefined ) { };
 }
 
-module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData};
+const exportToJSON = () => {
+    fs.writeFile('../exports/data.json', JSON.stringify({
+        visits, 
+        dataWithErrors,
+        dataWithWarnings
+    }), (err) => {
+        if (err) throw err;
+        console.log('The file has been saved!');
+      });
+}
+
+module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData, exportToJSON};

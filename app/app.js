@@ -33,6 +33,7 @@ readDataFromFile('../data/data.csv')
 	const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
 	visits.importManyFromArray(dataRawArr);
 	visits.showAll();
+	visits.exportToJSON();
 	
 	// console.log( findIcd10inVisits('Z10', visitsArr) );
 	 
