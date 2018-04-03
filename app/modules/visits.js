@@ -1,10 +1,13 @@
 const fs = require('fs');
 
+const {isIcd10NotRequired, isMidwifeVisit} = require('../config/visitsConfig');
+
 class Visit{
-    constructor(date, pesel, icd10, patientFirstName, patientLastName, staff, visitName){
+    constructor(date, pesel, icd10, icd9, patientFirstName, patientLastName, staff, visitName){
         this.date = date;
         this.pesel = pesel; 
         this.icd10 = icd10;
+        this.icd9 = icd9;
         this.patientFirstName = patientFirstName;
         this.patientLastName = patientLastName;
         this.staff = staff;
@@ -16,18 +19,21 @@ const visits = [];
 const dataWithErrors = []; //wiersze danych, których nie udało się skonwertować na dane wizyty
 const dataWithWarnings = []; //wiersze danych, które udało się skonwertować na dane wizyty, jednak wystąpiły pewne wątpliwości - stąd ostrzeżenia
 
-const add = (date, pesel, icd10, patientFirstName, patientLastName, staff, visitName) => {
+const add = (date, pesel, icd10, icd9, patientFirstName, patientLastName, staff, visitName) => {
 // dodaje wizytę, jako instancję klasy Visit do tablicy visits
 // jeśli dane wizyty są niepoprawne dodaje je do dataWithErrors
 // dane z ostrzeżeniami dodawane są do wizyt ale także do tablicy dataWithWarnings
 
     // zmienna zliczające ile poprawnie zwalidowanych rozpoznań jest w tablicy - argumencie icd10
-    const icd10validatedCount = typeof icd10 === 'object' ? icd10.filter(currCode => (typeof currCode === 'string' && currCode.trim().length > 2 )).length : 0;
+    const icd10validatedCount = (Array.isArray(icd10)) ? icd10.filter(currCode => (typeof currCode === 'string' && currCode.trim().length > 2 )).length : 0;
 
     // SPRAWDZENIE BŁĘDU DANYCH
     if(typeof date === 'string' && date.trim().length === 10 
+        //dane są poprawne jeśli podano icd9 dla którego wymagane jest rozpoznanie icd10 (wtedy isIcd10NotRequired(icd9) === false ) i przekazano przynajmniej jeden poprawny kod icd10
+        // lub podano icd9 dla którego nie jest wymagane (ani dozwolone) icd10 (wtedy isIcd10NotRequired(icd9) === true ) i nie przekazano żadnego icd10
+        // wyjątkiem, kiedy dane są poprawne chociaż icd9 nie wymaga icd10, a te zostały przekazane są patronażami położnej lub pielęgniarki (kiedy isMidwifeVisit(icd10, icd9) === true)
+    && ((!isIcd10NotRequired(icd9) && icd10validatedCount > 0 ) || (isIcd10NotRequired(icd9) && Array.isArray(icd10) && (icd10.length === 0 || isMidwifeVisit(icd10, icd9)) ))
     && typeof pesel === 'string' && pesel.trim().length === 11 
-    && icd10validatedCount > 0
     && typeof patientFirstName === 'string' && patientFirstName.trim().length > 0
     && typeof patientLastName === 'string' && patientLastName.trim().length === 1
     && typeof staff === 'string' && staff.trim().length > 0 
@@ -41,6 +47,7 @@ const add = (date, pesel, icd10, patientFirstName, patientLastName, staff, visit
                 date,
                 pesel,
                 icd10,
+                icd9,
                 patientFirstName,
                 patientLastName,
                 staff,
@@ -55,6 +62,7 @@ const add = (date, pesel, icd10, patientFirstName, patientLastName, staff, visit
         date,
         pesel,
         icd10,
+        icd9,
         patientFirstName,
         patientLastName,
         staff,
@@ -97,7 +105,8 @@ const importManyFromArray = (rawDataArr, hasHeader = true) => {
 		}
 
 		// przetworzenie odpowiednich kolumn na pola obiektu wizyty
-		const date = rawRowDataArr[0].split(' ')[0]; //obcięcie zbędnej godziny ze stringa daty
+        const date = rawRowDataArr[0].split(' ')[0]; //obcięcie zbędnej godziny ze stringa daty
+        const icd9 =  rawRowDataArr[8];
 		const pesel = rawRowDataArr[19]; //pierwsze sześć cyfr pesel
 		const patientFirstName = rawRowDataArr[18] !== undefined ? rawRowDataArr[18].slice(rawRowDataArr[18].lastIndexOf(' ')) : ''; //imię - ostatni człon stringa patientLastName i imię
 		const patientLastName = rawRowDataArr[18] !== undefined ? rawRowDataArr[18][0] : ''; //pierwsza litera nazwiska
@@ -105,7 +114,7 @@ const importManyFromArray = (rawDataArr, hasHeader = true) => {
 		const visitName = rawRowDataArr[3];
         
         // return new Visit(date, pesel, icd10, patientFirstName, patientLastName, staff, visitName);
-        add(date, pesel, icd10, patientFirstName, patientLastName, staff, visitName);
+        add(date, pesel, icd10, icd9, patientFirstName, patientLastName, staff, visitName);
     }
 
     rawDataArr = verifyHeaderAndDelete(rawDataArr);
