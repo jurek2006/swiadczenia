@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const {isIcd10NotRequired, isMidwifeVisit} = require('../config/visitsConfig');
+const {isIcd10NotRequired, isPatronage} = require('../config/visitsConfig');
 
 class Visit{
     constructor(date, pesel, icd10, icd9, patientFirstName, patientLastName, staff, visitName){
@@ -31,14 +31,15 @@ const add = (date, pesel, icd10, icd9, patientFirstName, patientLastName, staff,
     if(typeof date === 'string' && date.trim().length === 10 
         //dane są poprawne jeśli podano icd9 dla którego wymagane jest rozpoznanie icd10 (wtedy isIcd10NotRequired(icd9) === false ) i przekazano przynajmniej jeden poprawny kod icd10
         // lub podano icd9 dla którego nie jest wymagane (ani dozwolone) icd10 (wtedy isIcd10NotRequired(icd9) === true ) i nie przekazano żadnego icd10
-        // wyjątkiem, kiedy dane są poprawne chociaż icd9 nie wymaga icd10, a te zostały przekazane są patronażami położnej lub pielęgniarki (kiedy isMidwifeVisit(icd10, icd9) === true)
-    && ((!isIcd10NotRequired(icd9) && icd10validatedCount > 0 ) || (isIcd10NotRequired(icd9) && Array.isArray(icd10) && (icd10.length === 0 || isMidwifeVisit(icd10, icd9)) ))
+        // wyjątkiem, kiedy dane są poprawne chociaż icd9 nie wymaga icd10, a te zostały przekazane są patronażami położnej lub pielęgniarki (kiedy isPatronage(icd10, icd9, visitName) === true)
+    && ((!isIcd10NotRequired(icd9) && icd10validatedCount > 0 ) || (isIcd10NotRequired(icd9) && Array.isArray(icd10) && (icd10.length === 0 || isPatronage(icd10, icd9, visitName)) ))
     && typeof pesel === 'string' && pesel.trim().length === 11 
+    && typeof icd9 === 'string' && icd9.trim().length === 5 && icd9[2] === '.' //sprawdzenie formatu kodu icd9 - musi być w stylu 89.00
     && typeof patientFirstName === 'string' && patientFirstName.trim().length > 0
     && typeof patientLastName === 'string' && patientLastName.trim().length === 1
     && typeof staff === 'string' && staff.trim().length > 0 
     && typeof visitName === 'string' && visitName.trim().length > 0){
-        visits.push(new Visit(date, pesel, icd10, patientFirstName, patientLastName, staff, visitName));
+        visits.push(new Visit(date, pesel, icd10, icd9, patientFirstName, patientLastName, staff, visitName));
 
         // jeśli liczba zwalidowanych rozpoznań w tablicy argumentu icd10 jest różna od liczby zadanych w niej argumentów
         // czyli, że były rozpoznania, które nie przeszły walidacji - dane są dodawane do tablicy dataWithWarnings
@@ -108,7 +109,7 @@ const importManyFromArray = (rawDataArr, hasHeader = true) => {
         const date = rawRowDataArr[0].split(' ')[0]; //obcięcie zbędnej godziny ze stringa daty
         const icd9 =  rawRowDataArr[8];
 		const pesel = rawRowDataArr[19]; //pierwsze sześć cyfr pesel
-		const patientFirstName = rawRowDataArr[18] !== undefined ? rawRowDataArr[18].slice(rawRowDataArr[18].lastIndexOf(' ')) : ''; //imię - ostatni człon stringa patientLastName i imię
+		const patientFirstName = rawRowDataArr[18] !== undefined ? rawRowDataArr[18].slice(rawRowDataArr[18].lastIndexOf(' ') + 1) : ''; //imię - ostatni człon stringa patientLastName i imię
 		const patientLastName = rawRowDataArr[18] !== undefined ? rawRowDataArr[18][0] : ''; //pierwsza litera nazwiska
 		const staff = rawRowDataArr[20];
 		const visitName = rawRowDataArr[3];
