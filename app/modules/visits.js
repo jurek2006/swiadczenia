@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const fs = require('fs');
 
 const {isIcd10NotRequired, isPatronage} = require('../config/visitsConfig');
@@ -162,4 +163,15 @@ const exportToJSON = () => {
       });
 }
 
-module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData, exportToJSON};
+const filterVisits = (visitsSearchObj) => {
+// funkcja filtrująca wizyty z visits na podstawie zgodności właściwości visitsSearchObj z wizytą
+    return _.filter(visits, visitsSearchObj);
+}
+
+const findMultipleVisitsOfDay = () => {
+// funkcja wyszukuje w visits i zwraca takie wizyty [tablicę Visits], kiedy jest więcej niż jedna w dniu dla tego samego pacjenta 
+
+    
+}
+
+module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData, exportToJSON, filterVisits};
