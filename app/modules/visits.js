@@ -19,6 +19,7 @@ class Visit{
 const visits = [];
 const dataWithErrors = []; //wiersze danych, których nie udało się skonwertować na dane wizyty
 const dataWithWarnings = []; //wiersze danych, które udało się skonwertować na dane wizyty, jednak wystąpiły pewne wątpliwości - stąd ostrzeżenia
+const multipleVisitsOfDayArr = []; //tablica w której zapisywane są 'wieloktorne wizyty w dniu' czyli jeśli jeden pacjent ma więcej niż jedną wizytę danego dnia
 
 const add = (date, pesel, icd10, icd9, patientFirstName, patientLastName, staff, visitName) => {
 // dodaje wizytę, jako instancję klasy Visit do tablicy visits
@@ -150,15 +151,19 @@ const removeAll = () => {
     while( (visits.shift()) !== undefined ) { };
     while( (dataWithErrors.shift()) !== undefined ) { };
     while( (dataWithWarnings.shift()) !== undefined ) { };
+    while( (multipleVisitsOfDayArr.shift()) !== undefined ) { };
 }
 
 const exportToJSON = () => {
+
     fs.writeFile('../exports/data.json', JSON.stringify({
         visits, 
         dataWithErrors,
-        dataWithWarnings
+        dataWithWarnings,
+        multipleVisitsOfDayArr
     }), (err) => {
         if (err) throw err;
+        
         console.log('The file has been saved!');
       });
 }
@@ -169,9 +174,37 @@ const filterVisits = (visitsSearchObj) => {
 }
 
 const findMultipleVisitsOfDay = () => {
-// funkcja wyszukuje w visits i zwraca takie wizyty [tablicę Visits], kiedy jest więcej niż jedna w dniu dla tego samego pacjenta 
+// funkcja wyszukuje w visits, wizyty kiedy jest więcej niż jedna w dniu dla tego samego pacjenta 
+// i zapisuje to w zmiennej globalnej modułu multipleVisitsOfDayArr (zwraca też kopię tej tablicy)
+// {date, pesel, visitsArr} gdzie visitsArr to tablica Visits danego pacjenta w danym dniu (określane przed date i pesel)
+// w tej tablicy elementy tylko dla dubli (jeśli jest jedno świadczenie dla pacjenta danego dnia, nie jest to brane pod uwagę)
 
+    let visitsTemp = getAll();
+
+    while((currVisit = visitsTemp.shift()) !== undefined){
+    // dopóki zdjęty pierwszy element tablicy nie jest undefined
+        
+        const foundDoubles = _.filter(visitsTemp, {date: currVisit.date, pesel: currVisit.pesel});
+        if(foundDoubles.length > 1){
+        // jeśli znaleziono jakieś duble dodanie ich do tablicy 
+
+            // zapisanie pierwszej (znalezionej) wizyty do doubles
+            multipleVisitsOfDayArr.push({ 
+                date: currVisit.date,
+                pesel: currVisit.pesel,
+                visitsArr: [currVisit].concat(foundDoubles) //tablica z danymi wszystkich wizyt danego pacjenta w danym dniu 
+            });
+
+            foundDoubles.forEach(currDouble => {
+                // dla każdego znalezionego dubla - usunięcie go z tablicy visitsTemp (żeby ponownie dla niego nie były wyszukiwane duble)
+                visitsTemp = _.pull(visitsTemp, currDouble);
+            });
+        }
+        
+        
+    }
     
+    return multipleVisitsOfDayArr.slice(); //zwraca kopię multipleVisitsOfDayArr
 }
 
-module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData, exportToJSON, filterVisits};
+module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData, exportToJSON, filterVisits, findMultipleVisitsOfDay};
