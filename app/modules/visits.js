@@ -156,6 +156,7 @@ const removeAll = () => {
 
 const exportToJSON = () => {
 
+
     fs.writeFile('../exports/data.json', JSON.stringify({
         visits, 
         dataWithErrors,
@@ -204,4 +205,29 @@ const findMultipleVisitsOfDay = () => {
     return multipleVisitsOfDayArr.slice(); //zwraca kopię multipleVisitsOfDayArr
 }
 
-module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData, exportToJSON, filterVisits, findMultipleVisitsOfDay};
+const generateReportObj = () => {
+// generuje raport z wizyt jako obiekt
+    // zgrupowanie "dubli" wg pesel
+    const out = {};
+    const pesel = [...new Set(multipleVisitsOfDayArr.map(currEl => {return currEl.pesel}))]; //wyciągnięcie z tablicy multipleVisitsOfDayArr i usunięcie wśród nich dubli
+    pesel.forEach(currPesel => {
+        // out.push(filterVisits({pesel: currPesel}));
+        // out[currPesel] = filterVisits({pesel: currPesel});
+        out[currPesel] = filterVisits({pesel: currPesel});
+        
+    });
+    return out;
+}
+
+const exportReportAsJSON = () => {
+
+    fs.writeFile('../exports/report.json', JSON.stringify({
+        raport: generateReportObj()
+    }), (err) => {
+        if (err) throw err;
+        
+        console.log('Raport został zapisany');
+      });
+}
+
+module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData, exportToJSON, filterVisits, findMultipleVisitsOfDay, generateReportObj, exportReportAsJSON};

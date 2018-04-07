@@ -35,6 +35,7 @@ readDataFromFile('../data/data.csv')
 	// visits.showAll();
 	visits.findMultipleVisitsOfDay();
 	visits.exportToJSON();
+	visits.exportReportAsJSON();
 	
 	// console.log( findIcd10inVisits('Z10', visitsArr) );
 	 
