@@ -195,12 +195,9 @@ const findMultipleVisitsOfDay = () => {
                 visitsArr: [currVisit].concat(foundDoubles) //tablica z danymi wszystkich wizyt danego pacjenta w danym dniu 
             });
 
-            foundDoubles.forEach(currDouble => {
-                // dla każdego znalezionego dubla - usunięcie go z tablicy visitsTemp (żeby ponownie dla niego nie były wyszukiwane duble)
-                visitsTemp = _.pull(visitsTemp, currDouble);
-            });
+            _.pullAll(visitsTemp, foundDoubles); // usunięcie wszystkich dubli z tablicy visitsTemp (żeby ponownie dla niego nich nie były wyszukiwane duble)
+
         }
-        
         
     }
     

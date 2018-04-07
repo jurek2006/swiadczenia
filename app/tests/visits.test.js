@@ -487,7 +487,10 @@ describe('Module visits', () => {
     describe('visits.findMultipleVisitsOfDay()', () => {
         beforeEach(() => {
             visits.removeAll();
-            // świadczenia lekarza
+        });
+
+        it('should return array with "multiple visits" for person in day', () => { 
+            // dodawanie świadczeń:
             visits.add('2018-03-02', '84101711211', ['B02', 'C03'], '89.00', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
             visits.add('2018-03-03', '84101711212', ['A01', 'B02', 'C03'], '89.00', 'JERZY', 'S', 'BEATA NOWAK', 'porada lekarska udzielona w miejscu udzielania świadczeń');
             visits.add('2018-03-15', '84101711213', ['X11'], '89.00', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
@@ -507,9 +510,7 @@ describe('Module visits', () => {
             visits.add('2018-03-17', '84101711212', [], '89.05', 'JERZY', 'S', 'BEATA NOWAK', 'świadczenie pielęgnacyjne');
             visits.add('2018-03-17', '84101711212', ['Z76.2'], '89.05', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz');
             visits.add('2018-03-17', '84101711212', ['Z39'], '89.05', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa');
-        });
 
-        it('should return array with multiple visits for person in day', () => { 
             const multipleVisitsOfDay = visits.findMultipleVisitsOfDay();
             // sprawdzenie ilości znalezionych "dubli" (czyli dni w których było wiele wizyt dla tego samego pacjenta)
             expect(multipleVisitsOfDay.length).toBe(4);
@@ -522,8 +523,41 @@ describe('Module visits', () => {
             expect(_.filter(multipleVisitsOfDay, {date: '2018-03-17', pesel: '84101711212'}).length).toBe(1); //oznacza, że znaleziono więcej niż jedną wizytę dla danego peselu danego dnia
 
             // nie ma dubli dla tych danych
+            expect(_.filter(multipleVisitsOfDay, {date: '2018-03-02', pesel: '84101711211'}).length).toBe(0); //oznacza, że nie znaleziono więcej niż jednej wizytę dla danego peselu danego dnia
             expect(_.filter(multipleVisitsOfDay, {date: '2018-03-03', pesel: '84101711212'}).length).toBe(0); //oznacza, że nie znaleziono więcej niż jednej wizytę dla danego peselu danego dnia
             expect(_.filter(multipleVisitsOfDay, {date: '2018-03-15', pesel: '84101711213'}).length).toBe(0); //oznacza, że nie znaleziono więcej niż jednej wizytę dla danego peselu danego dnia
+        });
+
+        it('should return empty array when there is no "multiple visits"', () => {
+            // dodawanie świadczeń:
+            visits.add('2018-03-01', '84101711211', ['B02', 'C03'], '89.00', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-02', '84101711212', ['A01', 'B02', 'C03'], '89.00', 'JERZY', 'S', 'BEATA NOWAK', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-03', '84101711213', ['X11'], '89.00', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            
+            visits.add('2018-03-04', '84101711210', ['Y11'], '89.00', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-05', '84101711210', ['Z11'], '89.00', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-06', '84101711210', ['A01', 'B02', 'C03'], '89.00', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+
+            visits.add('2018-03-07', '84101711210', [], '89.05', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'świadczenie profilaktyczne');
+            visits.add('2018-03-08', '84101711210', ['Z76.2'], '89.05', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-09', '84101711210', ['Z39'], '89.05', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa');
+
+            visits.add('2018-03-10', '84101711211', [], '89.05', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            visits.add('2018-03-11', '84101711211', ['Z76.2'], '89.05', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-12', '84101711211', ['Z39.2'], '89.05', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa');
+
+            visits.add('2018-03-12', '84101711212', [], '89.05', 'JERZY', 'S', 'BEATA NOWAK', 'świadczenie pielęgnacyjne');
+            visits.add('2018-03-13', '84101711212', ['Z76.2'], '89.05', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-14', '84101711212', ['Z39'], '89.05', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa');
+
+            const multipleVisitsOfDay = visits.findMultipleVisitsOfDay();
+            // sprawdzenie ilości znalezionych "dubli" (czyli dni w których było wiele wizyt dla tego samego pacjenta)
+            expect(multipleVisitsOfDay.length).toBe(0);
+        });
+
+        it('should return empty array (not an error) when there are no visits', () => {
+            const multipleVisitsOfDay = visits.findMultipleVisitsOfDay();
+            expect(multipleVisitsOfDay.length).toBe(0);
         });
 
     });
