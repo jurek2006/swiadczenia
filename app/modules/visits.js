@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const {isIcd10NotRequired, isPatronage} = require('../config/visitsConfig');
-const {saveJSON} = require('../modules/utils');
+const {saveJSON, deepCopy} = require('../modules/utils');
 
 class Visit{
     constructor(date, pesel, icd10, icd9, patientFirstName, patientLastName, staff, visitName){
@@ -21,7 +21,7 @@ class Visit{
 const visits = [];
 const dataWithErrors = []; //wiersze danych, których nie udało się skonwertować na dane wizyty
 const dataWithWarnings = []; //wiersze danych, które udało się skonwertować na dane wizyty, jednak wystąpiły pewne wątpliwości - stąd ostrzeżenia
-const multipleVisitsOfDayArr = []; //tablica w której zapisywane są 'wieloktorne wizyty w dniu' czyli jeśli jeden pacjent ma więcej niż jedną wizytę danego dnia
+const multipleVisitsOfDayObj = {}; //obiekt w którym zapisywane są 'wieloktorne wizyty w dniu' czyli jeśli jeden pacjent ma więcej niż jedną wizytę danego dnia
 
 const add = (date, pesel, icd10, icd9, patientFirstName, patientLastName, staff, visitName) => {
 // dodaje wizytę, jako instancję klasy Visit do tablicy visits
@@ -153,7 +153,8 @@ const removeAll = () => {
     while( (visits.shift()) !== undefined ) { };
     while( (dataWithErrors.shift()) !== undefined ) { };
     while( (dataWithWarnings.shift()) !== undefined ) { };
-    while( (multipleVisitsOfDayArr.shift()) !== undefined ) { };
+    // czyszczenie multipleVisitsOfDayObj
+    for (var prop in multipleVisitsOfDayObj) { if (multipleVisitsOfDayObj.hasOwnProperty(prop)) { delete multipleVisitsOfDayObj[prop]; } }
 }
 
 const filterVisits = (visitsSearchObj) => {
@@ -163,33 +164,48 @@ const filterVisits = (visitsSearchObj) => {
 
 const findMultipleVisitsOfDay = () => {
 // funkcja wyszukuje w visits, wizyty kiedy jest więcej niż jedna w dniu dla tego samego pacjenta 
-// i zapisuje to w zmiennej globalnej modułu multipleVisitsOfDayArr (zwraca też kopię tej tablicy)
-// {date, pesel, visitsArr} gdzie visitsArr to tablica Visits danego pacjenta w danym dniu (określane przed date i pesel)
-// w tej tablicy elementy tylko dla dubli (jeśli jest jedno świadczenie dla pacjenta danego dnia, nie jest to brane pod uwagę)
+// i zapisuje to w zmiennej globalnej modułu multipleVisitsOfDayObj
+// struktura multipleVisitsOfDayObj:
+// {pesel: {
+//      data: [] - tablica wizyt
+// }}
+// w tym obiekcie elementy tylko dla dubli (jeśli jest jedno świadczenie dla pacjenta danego dnia, nie jest to brane pod uwagę)
 
     let visitsTemp = getAll();
 
     while((currVisit = visitsTemp.shift()) !== undefined){
-    // dopóki zdjęty pierwszy element tablicy nie jest undefined
+    // dopóki zdjęty pierwszy element tablicy wizyt nie jest undefined - ściągamy go z tej tablicy
         
+        // znalezienie "dubli" czyli filtrowanie wszystkich wizyt dla tego samego peselu w ten sam dzień co currVisit 
         const foundDoubles = _.filter(visitsTemp, {date: currVisit.date, pesel: currVisit.pesel});
+
         if(foundDoubles.length > 1){
-        // jeśli znaleziono jakieś duble dodanie ich do tablicy 
-
+        // jeśli znaleziono jakieś duble dodanie ich do obiektu 
+            
+            // przygotowanie odpowiednich właściwości obiektu, jeśli nie istnieją
+            if(!multipleVisitsOfDayObj[currVisit.pesel]){
+                multipleVisitsOfDayObj[currVisit.pesel] = {
+                    patient: `${currVisit.patientLastName}. ${currVisit.patientFirstName}`
+                }
+            }
+            if(!multipleVisitsOfDayObj[currVisit.pesel][currVisit.date]){
+                multipleVisitsOfDayObj[currVisit.pesel][currVisit.date] = [];
+            }
+            
             // zapisanie pierwszej (znalezionej) wizyty do doubles
-            multipleVisitsOfDayArr.push({ 
-                date: currVisit.date,
-                pesel: currVisit.pesel,
-                visitsArr: [currVisit].concat(foundDoubles) //tablica z danymi wszystkich wizyt danego pacjenta w danym dniu 
+            multipleVisitsOfDayObj[currVisit.pesel][currVisit.date].push(currVisit);
+
+            foundDoubles.forEach(currDouble => {
+                // dla każdego dubla - dodanie tej wizyty take do dubli
+                multipleVisitsOfDayObj[currVisit.pesel][currVisit.date].push(currDouble);
             });
-
+            
             _.pullAll(visitsTemp, foundDoubles); // usunięcie wszystkich dubli z tablicy visitsTemp (żeby ponownie dla niego nich nie były wyszukiwane duble)
-
+            
         }
-        
+            
     }
-    
-    return multipleVisitsOfDayArr.slice(); //zwraca kopię multipleVisitsOfDayArr
+    return deepCopy(multipleVisitsOfDayObj);
 }
 
 const generateReportObj = () => {
@@ -201,26 +217,23 @@ const generateReportObj = () => {
     reportObj.dataWithWarnings = dataWithWarnings;
 
     // raport z wielokrotnych wizyt pacjenta w dniu
-    reportObj.multipleVisits = {};
+    reportObj.multipleVisits = deepCopy(multipleVisitsOfDayObj); //kopia obiektu z "dublami"
+  
     
-    const peselsArr = [...new Set(multipleVisitsOfDayArr.map(currEl => {return currEl.pesel}))]; //znalezienie peseli dla których znaleziono "wielokrotne wizyty w dniu"
-    peselsArr.forEach(currPesel => {
-        // dla każdego znalezionego peselu
+    // dla każdego peselu, dla którego występują duble
+    for (let currPesel in reportObj.multipleVisits){
+        // dla każdego dnia dla tego peselu
         
-        // REFAKTOR
-        const test = _.filter(multipleVisitsOfDayArr, {pesel: currPesel});
+        for(let currDate in reportObj.multipleVisits[currPesel]){
+            // dla każdej wizyty w dniu - pętla po każdej wizycie w tablicy
+            const currVisits = reportObj.multipleVisits[currPesel][currDate];
 
-        reportObj.multipleVisits[currPesel] = {};
-        test.forEach(currDate => {
-        reportObj.multipleVisits[currPesel][currDate.date] = [];
-            
-            currDate.visitsArr.forEach(currVisit => {
-
-                reportObj.multipleVisits[currPesel][currDate.date].push(`${currVisit.staff} | ${currVisit.icd10} | ${currVisit.icd9} | ${currVisit.visitName}`);
-            });
-            
-        });
-    });
+            for(let i = 0; i < currVisits.length; i++){
+                // podmiana obiektu danych wizyty na string danych wizyty
+                currVisits[i] = `${currVisits[i].staff} | ${currVisits[i].icd10} | ${currVisits[i].icd9} | ${currVisits[i].visitName}`;
+            }
+        }
+    }
 
     return reportObj;
 }

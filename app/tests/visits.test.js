@@ -2,6 +2,7 @@ const _ = require('lodash');
 const expect = require('expect');
 
 const visits = require('../modules/visits');
+const {saveJSON} = require('../modules/utils');
 
 beforeEach(() => {
     visits.removeAll();
@@ -489,7 +490,7 @@ describe('Module visits', () => {
             visits.removeAll();
         });
 
-        it('should return array with "multiple visits" for person in day', () => { 
+        it('should return object with "multiple visits" for person in day', () => { 
             // dodawanie świadczeń:
             visits.add('2018-03-02', '84101711211', ['B02', 'C03'], '89.00', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
             visits.add('2018-03-03', '84101711212', ['A01', 'B02', 'C03'], '89.00', 'JERZY', 'S', 'BEATA NOWAK', 'porada lekarska udzielona w miejscu udzielania świadczeń');
@@ -513,22 +514,20 @@ describe('Module visits', () => {
 
             const multipleVisitsOfDay = visits.findMultipleVisitsOfDay();
             // sprawdzenie ilości znalezionych "dubli" (czyli dni w których było wiele wizyt dla tego samego pacjenta)
-            expect(multipleVisitsOfDay.length).toBe(4);
-
 
             // są duble dla danych
-            expect(_.filter(multipleVisitsOfDay, {date: '2018-03-01', pesel: '84101711210'}).length).toBe(1); //oznacza, że znaleziono więcej niż jedną wizytę dla danego peselu danego dnia
-            expect(_.filter(multipleVisitsOfDay, {date: '2018-03-15', pesel: '84101711210'}).length).toBe(1); //oznacza, że znaleziono więcej niż jedną wizytę dla danego peselu danego dnia
-            expect(_.filter(multipleVisitsOfDay, {date: '2018-03-16', pesel: '84101711211'}).length).toBe(1); //oznacza, że znaleziono więcej niż jedną wizytę dla danego peselu danego dnia
-            expect(_.filter(multipleVisitsOfDay, {date: '2018-03-17', pesel: '84101711212'}).length).toBe(1); //oznacza, że znaleziono więcej niż jedną wizytę dla danego peselu danego dnia
+            expect(multipleVisitsOfDay[84101711210]['2018-03-01'].length).toBe(3);
+            expect(multipleVisitsOfDay[84101711210]['2018-03-15'].length).toBe(3);
+            expect(multipleVisitsOfDay[84101711211]['2018-03-16'].length).toBe(3);
+            expect(multipleVisitsOfDay[84101711212]['2018-03-17'].length).toBe(3);
 
             // nie ma dubli dla tych danych
-            expect(_.filter(multipleVisitsOfDay, {date: '2018-03-02', pesel: '84101711211'}).length).toBe(0); //oznacza, że nie znaleziono więcej niż jednej wizytę dla danego peselu danego dnia
-            expect(_.filter(multipleVisitsOfDay, {date: '2018-03-03', pesel: '84101711212'}).length).toBe(0); //oznacza, że nie znaleziono więcej niż jednej wizytę dla danego peselu danego dnia
-            expect(_.filter(multipleVisitsOfDay, {date: '2018-03-15', pesel: '84101711213'}).length).toBe(0); //oznacza, że nie znaleziono więcej niż jednej wizytę dla danego peselu danego dnia
+            expect(multipleVisitsOfDay[84101711211]['2018-03-02']).toNotExist();
+            expect(multipleVisitsOfDay[84101711212]['2018-03-03']).toNotExist();
+            expect(multipleVisitsOfDay[84101711213]).toNotExist();
         });
 
-        it('should return empty array when there is no "multiple visits"', () => {
+        it('should return empty object when there is no "multiple visits"', () => {
             // dodawanie świadczeń:
             visits.add('2018-03-01', '84101711211', ['B02', 'C03'], '89.00', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
             visits.add('2018-03-02', '84101711212', ['A01', 'B02', 'C03'], '89.00', 'JERZY', 'S', 'BEATA NOWAK', 'porada lekarska udzielona w miejscu udzielania świadczeń');
@@ -551,13 +550,16 @@ describe('Module visits', () => {
             visits.add('2018-03-14', '84101711212', ['Z39'], '89.05', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa');
 
             const multipleVisitsOfDay = visits.findMultipleVisitsOfDay();
-            // sprawdzenie ilości znalezionych "dubli" (czyli dni w których było wiele wizyt dla tego samego pacjenta)
-            expect(multipleVisitsOfDay.length).toBe(0);
+            // sprawdzenie czy znaleziono jakieś "duble" dla zadanych peseli
+            expect(multipleVisitsOfDay[84101711210]).toNotExist();
+            expect(multipleVisitsOfDay[84101711211]).toNotExist();
+            expect(multipleVisitsOfDay[84101711212]).toNotExist();
+            expect(multipleVisitsOfDay[84101711213]).toNotExist();
         });
 
-        it('should return empty array (not an error) when there are no visits', () => {
+        it('should return empty object (not an error) when there are no visits', () => {
             const multipleVisitsOfDay = visits.findMultipleVisitsOfDay();
-            expect(multipleVisitsOfDay.length).toBe(0);
+            expect(JSON.stringify(multipleVisitsOfDay)).toBe(JSON.stringify({}));
         });
 
     });

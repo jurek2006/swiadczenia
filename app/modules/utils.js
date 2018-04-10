@@ -17,8 +17,7 @@ const saveJSON = (objToSave, pathRelative, fileName) => {
             (err) => {
                 if (err) reject(err);
             
-                console.log(`Plik JSON ${pathToWrite} został zapisany`);
-                resolve(true);
+                resolve(`Plik JSON ${pathToWrite} został zapisany`);
             }
         ); 
     });
@@ -35,4 +34,9 @@ const readFile = (pathToFile) => {
 	});
 }
 
-module.exports = {saveJSON, readFile}
+const deepCopy = (sourceObj) => {
+// zwraca deep copy obiektu
+    return JSON.parse(JSON.stringify(sourceObj));
+}
+
+module.exports = {saveJSON, readFile, deepCopy}
