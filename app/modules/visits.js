@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const fs = require('fs');
+const path = require('path');
 
 const {isIcd10NotRequired, isPatronage} = require('../config/visitsConfig');
 
@@ -156,8 +157,8 @@ const removeAll = () => {
 
 const exportToJSON = () => {
 
-
-    fs.writeFile('../exports/data.json', JSON.stringify({
+    const writeFilePath = path.join(__dirname, '../../exports/data.json');
+    fs.writeFile(writeFilePath, JSON.stringify({
         visits, 
         dataWithErrors,
         dataWithWarnings,
@@ -207,22 +208,43 @@ const findMultipleVisitsOfDay = () => {
 
 const generateReportObj = () => {
 // generuje raport z wizyt jako obiekt
-    // zgrupowanie "dubli" wg pesel
-    const out = {};
-    const pesel = [...new Set(multipleVisitsOfDayArr.map(currEl => {return currEl.pesel}))]; //wyciągnięcie z tablicy multipleVisitsOfDayArr i usunięcie wśród nich dubli
-    pesel.forEach(currPesel => {
-        // out.push(filterVisits({pesel: currPesel}));
-        // out[currPesel] = filterVisits({pesel: currPesel});
-        out[currPesel] = filterVisits({pesel: currPesel});
+    const reportObj = {};
+
+    // raport z danych z błędami i ostrzeżeniami przy wczytywaniu
+    reportObj.dataWithErrors = dataWithErrors;
+    reportObj.dataWithWarnings = dataWithWarnings;
+
+    // raport z wielokrotnych wizyt pacjenta w dniu
+    reportObj.multipleVisits = {};
+    
+    const peselsArr = [...new Set(multipleVisitsOfDayArr.map(currEl => {return currEl.pesel}))]; //znalezienie peseli dla których znaleziono "wielokrotne wizyty w dniu"
+    peselsArr.forEach(currPesel => {
+        // dla każdego znalezionego peselu
         
+        // TEST
+        const test = _.filter(multipleVisitsOfDayArr, {pesel: currPesel});
+
+        reportObj.multipleVisits[currPesel] = {};
+        test.forEach(currDate => {
+        reportObj.multipleVisits[currPesel][currDate.date] = [];
+            
+            currDate.visitsArr.forEach(currVisit => {
+
+                reportObj.multipleVisits[currPesel][currDate.date].push(`${currVisit.staff} | ${currVisit.icd10} | ${currVisit.icd9} | ${currVisit.visitName}`);
+            });
+            
+        });
     });
-    return out;
+
+    return reportObj;
 }
 
 const exportReportAsJSON = () => {
 
-    fs.writeFile('../exports/report.json', JSON.stringify({
-        raport: generateReportObj()
+    const writeFilePath = path.join(__dirname, '..', '..', 'exports', 'report.json');
+    
+    fs.writeFile(writeFilePath, JSON.stringify({
+        report: generateReportObj()
     }), (err) => {
         if (err) throw err;
         

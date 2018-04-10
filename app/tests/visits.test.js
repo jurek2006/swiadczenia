@@ -561,4 +561,66 @@ describe('Module visits', () => {
         });
 
     });
+
+    describe('visits.generateReportObj()', () => {
+        beforeEach(() => {
+            visits.removeAll();
+        });
+
+        it('should generate "multiple visits" for person in day in reportObj', () => { 
+            // Sprawdza także, czy przez przypadek dla peseli "z dublami" nie raportowane są dane wizyt z dni, kiedy nie nastąpił "dubel" 
+            // NIE SPRAWDZA TREŚCI dla wizyty w raporcie, tylko ilości dubli w raporcie dla daneych dni, danych peseli
+
+            // ----------------------------------------------------------------------
+            // duble
+            visits.add('2018-03-01', '84101711210', ['Y11'], '89.00', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-01', '84101711210', ['Z11'], '89.00', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-01', '84101711210', ['A01', 'B02', 'C03'], '89.00', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            
+            visits.add('2018-03-15', '84101711210', [], '89.05', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'świadczenie profilaktyczne');
+            visits.add('2018-03-15', '84101711210', ['Z76.2'], '89.05', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-15', '84101711210', ['Z39'], '89.05', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa');
+            
+            // ----------------------------------------------------------------------
+            // bez dubli (nie powinno być raportowane):
+            visits.add('2018-03-02', '84101711211', ['B02', 'C03'], '89.00', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            // duble:
+            visits.add('2018-03-16', '84101711211', [], '89.05', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            visits.add('2018-03-16', '84101711211', ['Z76.2'], '89.05', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-16', '84101711211', ['Z39.2'], '89.05', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa');
+            // ----------------------------------------------------------------------
+            // bez dubli (nie powinno być raportowane):
+            visits.add('2018-03-03', '84101711212', ['A01', 'B02', 'C03'], '89.00', 'JERZY', 'S', 'BEATA NOWAK', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            // duble
+            visits.add('2018-03-17', '84101711212', [], '89.05', 'JERZY', 'S', 'BEATA NOWAK', 'świadczenie pielęgnacyjne');
+            visits.add('2018-03-17', '84101711212', ['Z76.2'], '89.05', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-17', '84101711212', ['Z39'], '89.05', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa');
+            // ----------------------------------------------------------------------
+            // bez dubli (nie powinno być raportowane):
+            visits.add('2018-03-15', '84101711213', ['X11'], '89.00', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+
+            visits.findMultipleVisitsOfDay();
+            const reportObj = visits.generateReportObj();
+            visits.exportReportAsJSON(); //wyeksportowanie podglądu TYMCZASOWE
+
+            // dla powyższych danych nie powinno być żadnych errorów ani ostrzeżeń
+            expect(reportObj.dataWithErrors.length).toBe(0);
+            expect(reportObj.dataWithWarnings.length).toBe(0);
+
+            // sprawdzenie dubli
+            expect(reportObj.multipleVisits['84101711210']['2018-03-01'].length).toBe(3);
+            expect(reportObj.multipleVisits['84101711210']['2018-03-15'].length).toBe(3);
+            
+            expect(reportObj.multipleVisits['84101711211']['2018-03-16'].length).toBe(3);
+            expect(reportObj.multipleVisits['84101711211']['2018-03-02']).toNotExist();
+
+            expect(reportObj.multipleVisits['84101711212']['2018-03-17'].length).toBe(3);
+            expect(reportObj.multipleVisits['84101711212']['2018-03-03']).toNotExist();
+
+            expect(reportObj.multipleVisits['84101711213']).toNotExist(); //nie ma żadnego dubla dla tego peselu
+
+            
+        });
+        
+    });
 });

@@ -1,12 +1,13 @@
 const _ = require('lodash')
 const fs = require('fs');
+const path = require('path');
 const bcrypt = require('bcrypt');
 
 const visits = require('../app/modules/visits'); //moduł do przechowywania danych wizyt
 
 const readDataFromFile = (pathToFile) => {
 	return new Promise((resolve, reject) =>{
-		fs.readFile(pathToFile, 'utf8', (err, data) => {
+		fs.readFile(path.join(__dirname, pathToFile), 'utf8', (err, data) => {
 			if (err) reject(err);
 
 			resolve(data);
