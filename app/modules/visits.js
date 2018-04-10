@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const {isIcd10NotRequired, isPatronage} = require('../config/visitsConfig');
+const {saveJSON} = require('../modules/utils');
 
 class Visit{
     constructor(date, pesel, icd10, icd9, patientFirstName, patientLastName, staff, visitName){
@@ -155,21 +156,6 @@ const removeAll = () => {
     while( (multipleVisitsOfDayArr.shift()) !== undefined ) { };
 }
 
-const exportToJSON = () => {
-
-    const writeFilePath = path.join(__dirname, '../../exports/data.json');
-    fs.writeFile(writeFilePath, JSON.stringify({
-        visits, 
-        dataWithErrors,
-        dataWithWarnings,
-        multipleVisitsOfDayArr
-    }), (err) => {
-        if (err) throw err;
-        
-        console.log('The file has been saved!');
-      });
-}
-
 const filterVisits = (visitsSearchObj) => {
 // funkcja filtrująca wizyty z visits na podstawie zgodności właściwości visitsSearchObj z wizytą
     return _.filter(visits, visitsSearchObj);
@@ -221,7 +207,7 @@ const generateReportObj = () => {
     peselsArr.forEach(currPesel => {
         // dla każdego znalezionego peselu
         
-        // TEST
+        // REFAKTOR
         const test = _.filter(multipleVisitsOfDayArr, {pesel: currPesel});
 
         reportObj.multipleVisits[currPesel] = {};
@@ -239,17 +225,20 @@ const generateReportObj = () => {
     return reportObj;
 }
 
-const exportReportAsJSON = () => {
+const saveReportAsJSON = () => {
 
-    const writeFilePath = path.join(__dirname, '..', '..', 'exports', 'report.json');
-    
-    fs.writeFile(writeFilePath, JSON.stringify({
-        report: generateReportObj()
-    }), (err) => {
-        if (err) throw err;
-        
-        console.log('Raport został zapisany');
-      });
+    saveJSON({ report: generateReportObj() }, '../../exports', 'report.json');
 }
 
-module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData, exportToJSON, filterVisits, findMultipleVisitsOfDay, generateReportObj, exportReportAsJSON};
+const saveAllToJSON = () => {
+// zapisuje dane o wizytach, danych z błędami i ostrzeżeniami importu, wielokrotnych wizytach do JSON
+
+      saveJSON({
+        visits, 
+        dataWithErrors,
+        dataWithWarnings,
+        multipleVisitsOfDayArr
+    }, '../../exports', 'dataAll.json');
+}
+
+module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON};

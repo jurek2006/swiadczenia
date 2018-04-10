@@ -4,16 +4,9 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 
 const visits = require('../app/modules/visits'); //moduł do przechowywania danych wizyt
+const {readFile} = require('../app/modules/utils');
 
-const readDataFromFile = (pathToFile) => {
-	return new Promise((resolve, reject) =>{
-		fs.readFile(path.join(__dirname, pathToFile), 'utf8', (err, data) => {
-			if (err) reject(err);
 
-			resolve(data);
-		});
-	});
-}
 
 const splitDataToArr = (readTextData) => {
 // funkcja dzieląca zczytany plik z danymi na tabelę dwuwymiarową
@@ -28,17 +21,16 @@ const findIcd10inVisits = (icd10toFind, visitsArr) => {
 	return visitsArr.filter(visit => visit.icd10.includes(icd10toFind) );
 }
 
-readDataFromFile('../data/data.csv')
+readFile('../../data/data.csv')
 .then(dataFromFile => {
 	
 	const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
 	visits.importManyFromArray(dataRawArr);
 	// visits.showAll();
 	visits.findMultipleVisitsOfDay();
-	visits.exportToJSON();
-	visits.exportReportAsJSON();
+	visits.saveAllToJSON();
+	visits.saveReportAsJSON();
 	
-	// console.log( findIcd10inVisits('Z10', visitsArr) );
 	 
 }).catch(err => {
 	console.log(`Nie udało się odczytać pliku. Błąd: ${err}`);

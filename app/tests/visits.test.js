@@ -601,7 +601,7 @@ describe('Module visits', () => {
 
             visits.findMultipleVisitsOfDay();
             const reportObj = visits.generateReportObj();
-            visits.exportReportAsJSON(); //wyeksportowanie podglądu TYMCZASOWE
+            visits.saveReportAsJSON(); //wyeksportowanie podglądu TYMCZASOWE
 
             // dla powyższych danych nie powinno być żadnych errorów ani ostrzeżeń
             expect(reportObj.dataWithErrors.length).toBe(0);
