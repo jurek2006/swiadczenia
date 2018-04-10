@@ -240,7 +240,7 @@ const generateReportObj = () => {
 
 const saveReportAsJSON = () => {
 
-    saveJSON({ report: generateReportObj() }, '../../exports', 'report.json');
+    saveJSON({ report: generateReportObj() }, '../../exports', 'report.json').then(res => console.log(res)).catch(err => console.log(err));
 }
 
 const saveAllToJSON = () => {
@@ -250,8 +250,8 @@ const saveAllToJSON = () => {
         visits, 
         dataWithErrors,
         dataWithWarnings,
-        multipleVisitsOfDayArr
-    }, '../../exports', 'dataAll.json');
+        multipleVisitsOfDayObj
+    }, '../../exports', 'dataAll.json').then(res => console.log(res)).catch(err => console.log(err));
 }
 
 module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON};
