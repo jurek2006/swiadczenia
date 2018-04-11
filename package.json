@@ -4,6 +4,7 @@
   "description": "Aplikacja do wstępnej weryfikacji świadczeń przed eksportem z modułu POZ do AMB w eZoz",
   "main": "index.js",
   "scripts": {
+    "start": "node app/app.js",
     "test": "mocha app/**/*.test.js",
     "test-watch": "nodemon -e js --exec \"npm test\""
   },
@@ -19,6 +20,7 @@
   "homepage": "https://github.com/jurek2006/swiadczenia#readme",
   "dependencies": {
     "bcrypt": "^1.0.3",
+    "express": "^4.16.3",
     "lodash": "^4.17.5"
   },
   "devDependencies": {
