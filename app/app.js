@@ -22,23 +22,7 @@ const findIcd10inVisits = (icd10toFind, visitsArr) => {
 	return visitsArr.filter(visit => visit.icd10.includes(icd10toFind) );
 }
 
-// readFile('../../data/data.csv')
-// .then(dataFromFile => {
-	
-// 	const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
-// 	visits.importManyFromArray(dataRawArr);
-// 	// visits.showAll();
-// 	visits.findMultipleVisitsOfDay();
-// 	visits.saveAllToJSON();
-// 	visits.saveReportAsJSON();
-	
-	 
-// }).catch(err => {
-// 	console.log(`Nie udało się odczytać pliku. Błąd: ${err}`);
-// 	console.log(err);
-	
-// }); 
-
+// route wyświetlająca JSON z raportem
 app.get('/', (req, res) => {
 	
 	visits.removeAll();
@@ -47,16 +31,11 @@ app.get('/', (req, res) => {
 			
 			const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
 			visits.importManyFromArray(dataRawArr);
-			// visits.showAll();
 			visits.findMultipleVisitsOfDay();
 			const report = visits.generateReportObj();
-			// visits.saveAllToJSON();
-			// visits.saveReportAsJSON();
-			
 			res.send(report);
 			
 		}).catch(err => {
-			// console.log(`Nie udało się odczytać pliku. Błąd: ${err}`);
 			console.log(err);
 			res.status(400).send(err);
 		}); 
