@@ -2,7 +2,7 @@ const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
 
-const {isIcd10NotRequired, isPatronage, nfzCodeIsAllowed} = require('../config/visitsConfig');
+const {isIcd10NotRequired, isPatronage, nfzCodeIsAllowed, nfzCodeIsExported} = require('../config/visitsConfig');
 const {saveJSON, deepCopy} = require('../modules/utils');
 
 class Visit{
@@ -22,7 +22,7 @@ class Visit{
 const visits = [];
 const dataWithErrors = []; //wiersze danych, których nie udało się skonwertować na dane wizyty
 const dataWithWarnings = []; //wiersze danych, które udało się skonwertować na dane wizyty, jednak wystąpiły pewne wątpliwości - stąd ostrzeżenia
-const multipleVisitsOfDayObj = {}; //obiekt w którym zapisywane są 'wieloktorne wizyty w dniu' czyli jeśli jeden pacjent ma więcej niż jedną wizytę danego dnia
+const multipleVisitsOfDayObj = {}; //obiekt w którym zapisywane są 'wieloktorne wizyty w dniu' czyli jeśli jeden pacjent ma więcej niż jedną wizytę danego dnia (tylko wizyty eksportowane do NFZ, na podstawie kodu NFZ)
 
 const add = (date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastName, staff, visitName) => {
 // dodaje wizytę, jako instancję klasy Visit do tablicy visits
@@ -149,6 +149,11 @@ const getAll = () => {
     return visits.slice();
 }
 
+const onlyExported = () => {
+// zwraca kopię tablicy visits tylko z wizytami, które są eksportowane do NFZ
+    return visits.filter(currVisit => nfzCodeIsExported(currVisit.nfzCode));
+}
+
 const getData = {
     withErrors: () => dataWithErrors.slice(),
     withWarnings: () => dataWithWarnings.slice(),
@@ -170,6 +175,7 @@ const filterVisits = (visitsSearchObj) => {
 
 const findMultipleVisitsOfDay = () => {
 // funkcja wyszukuje w visits, wizyty kiedy jest więcej niż jedna w dniu dla tego samego pacjenta 
+// jednak bierze pod uwagę tylko wizyty eksportowane do NFZ
 // i zapisuje to w zmiennej globalnej modułu multipleVisitsOfDayObj
 // struktura multipleVisitsOfDayObj:
 // {pesel: {
@@ -177,7 +183,7 @@ const findMultipleVisitsOfDay = () => {
 // }}
 // w tym obiekcie elementy tylko dla dubli (jeśli jest jedno świadczenie dla pacjenta danego dnia, nie jest to brane pod uwagę)
 
-    let visitsTemp = getAll();
+    let visitsTemp = onlyExported(); //tylko wizyty eksportowane
 
     while((currVisit = visitsTemp.shift()) !== undefined){
     // dopóki zdjęty pierwszy element tablicy wizyt nie jest undefined - ściągamy go z tej tablicy
@@ -236,7 +242,7 @@ const generateReportObj = () => {
 
             for(let i = 0; i < currVisits.length; i++){
                 // podmiana obiektu danych wizyty na string danych wizyty
-                currVisits[i] = `${currVisits[i].staff} | ${currVisits[i].icd10} | ${currVisits[i].icd9} | ${currVisits[i].visitName}`;
+                currVisits[i] = `${currVisits[i].staff} | ${currVisits[i].icd10} | ${currVisits[i].icd9} | ${currVisits[i].visitName} | ${currVisits[i].nfzCode}`;
             }
         }
     }
@@ -260,4 +266,4 @@ const saveAllToJSON = () => {
     }, '../../exports', 'dataAll.json').then(res => console.log(res)).catch(err => console.log(err));
 }
 
-module.exports = {add, importManyFromArray, showAll, getAll, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON};
+module.exports = {add, importManyFromArray, showAll, getAll, onlyExported, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON};

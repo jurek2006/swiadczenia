@@ -3,6 +3,7 @@ const expect = require('expect');
 
 const visits = require('../modules/visits');
 const {saveJSON} = require('../modules/utils');
+const {nfzCodeIsExported} = require('../config/visitsConfig');
 
 beforeEach(() => {
     visits.removeAll();
@@ -373,6 +374,67 @@ describe('Module visits', () => {
 
     });
 
+    describe('visits.onlyExported()', () => {
+
+        it('should return array of visits only exported to NFZ', () => {
+
+            // EKSPORTOWANE
+            visits.add('2018-03-02', '84101711211', ['B02', 'C03'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-03', '84101711212', ['A01', 'B02', 'C03'], '89.00', '5.01.00.0000122', 'JERZY', 'S', 'BEATA NOWAK', 'porada lekarska udzielona w domu pacjenta');
+            visits.add('2018-03-04', '84101711213', ['X11'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-01', '84101711210', ['A01', 'B02', 'C3'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-02', '84101711211', ['B02', false], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń'); 
+            visits.add('2018-03-03', '84101711212', ['A01', 'B02', 'C03', 'C'], '89.00', '5.01.00.0000122', 'JERZY', 'S', 'BEATA NOWAK', 'porada lekarska udzielona w domu pacjenta');
+            visits.add('2018-03-04', '84101711213', ['X11', 100], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            
+            visits.add('2018-03-15', '84101711210', ['Z76.2'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-16', '84101711211', ['Z76.2'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-17', '84101711212', ['Z76.2'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz');
+            
+            visits.add('2018-03-15', '84101711210', ['Z39'], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa');
+            visits.add('2018-03-16', '84101711211', ['Z39.2'], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa');
+            visits.add('2018-03-17', '84101711212', ['Z39'], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa');
+            // patronaże pielęgniarki
+            visits.add('2018-03-15', '84101711210', ['Z76.2', 'Z01'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-16', '84101711211', ['Z10', 'Z76.2'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-17', '84101711212', ['A10', 'Z76.2', 'B11'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz');
+            // patronaże położnej
+            visits.add('2018-03-16', '84101711211', ['C11', 'Z39.2'], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa');
+            visits.add('2018-03-15', '84101711210', ['Z39', 'Z10'], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa');
+            visits.add('2018-03-17', '84101711212', ['D13', 'Z39', 'B18'], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa');
+            
+            // patronaże pielęgniarki
+            visits.add('2018-03-16', '84101711211', ['Z76.2', true], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-17', '84101711212', ['Z76.2', 'Z0'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz');
+            // patronaże położnej
+            visits.add('2018-03-15', '84101711210', ['Z39', 100], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa');
+            visits.add('2018-03-16', '84101711211', ['Z39.2', ''], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa');
+            
+            
+            // NIEEKSPORTOWANE
+            visits.add('2018-03-15', '84101711210', [], '89.05','100204', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'świadczenie profilaktyczne');
+            visits.add('2018-03-16', '84101711211', [], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            visits.add('2018-03-17', '84101711212', [], '89.05','100206', 'JERZY', 'S', 'BEATA NOWAK', 'świadczenie pielęgnacyjne');
+            
+            visits.add('2018-03-15', '84101711210', ['Z39.2'], '89.05', '100302', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta domowa');
+            visits.add('2018-03-16', '84101711211', ['Z39.2'], '89.05', '100302', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta domowa');
+            visits.add('2018-03-17', '84101711212', ['Z39.2'], '89.05', '100302', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta domowa');
+            
+            // sprawdzenie czy poprawnie dodano wszystkie wizyty
+            expect(visits.getAll().length).toBe(29);
+            expect(visits.getData.withErrors().length).toBe(0);
+
+            const visitsOnlyExported = visits.onlyExported();
+            expect(visitsOnlyExported.length).toBe(23);
+
+            // sprawdzenie czy każdy z kodów jest z eksportowanych do NFZ
+            visitsOnlyExported.forEach(currVisit => {
+                expect(nfzCodeIsExported(currVisit.nfzCode)).toBeTruthy();
+            });
+            
+        });
+    });
+
     describe('visits.removeAll()', () => {
         it('Should remove all visits, dataWithErrors and dataWithWarnings arrays', () => {
 
@@ -512,6 +574,7 @@ describe('Module visits', () => {
         });
 
         it('should return object with "multiple visits" for person in day', () => { 
+            // BRANE POD UWAGĘ, BO Z KODEM ŚWIADCZEŃ EKSPORTOWANYCH DO NFZ
             // dodawanie świadczeń:
             visits.add('2018-03-02', '84101711211', ['B02', 'C03'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
             visits.add('2018-03-03', '84101711212', ['A01', 'B02', 'C03'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'BEATA NOWAK', 'porada lekarska udzielona w miejscu udzielania świadczeń');
@@ -532,6 +595,31 @@ describe('Module visits', () => {
             visits.add('2018-03-17', '84101711212', [], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'BEATA NOWAK', 'świadczenie pielęgnacyjne');
             visits.add('2018-03-17', '84101711212', ['Z76.2'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz');
             visits.add('2018-03-17', '84101711212', ['Z39'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa');
+
+            // NIE BRANE POD UWAGĘ BO Z KODEM ŚWIADCZEŃ NIEEKSPORTOWANYCH DO NFZ
+            visits.add('2018-03-02', '84101711211', ['B02', 'C03'], '89.00',  '100204', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-03', '84101711212', ['A01', 'B02', 'C03'], '89.00', '100205', 'JERZY', 'S', 'BEATA NOWAK', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-15', '84101711213', ['X11'], '89.00',  '100206', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            // duble
+            visits.add('2018-03-01', '84101711210', ['Y11'], '89.00',  '100204', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-01', '84101711210', ['Z11'], '89.00',  '100205', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-01', '84101711210', ['A01', 'B02', 'C03'], '89.00', '100207',  'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+
+            visits.add('2018-03-15', '84101711210', [], '89.05',  '100204', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'świadczenie profilaktyczne');
+            visits.add('2018-03-15', '84101711210', ['Z76.2'], '89.05',  '100205', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-15', '84101711210', ['Z39'], '89.05',  '100207', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa');
+
+            visits.add('2018-03-16', '84101711211', [], '89.05',  '100204', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            visits.add('2018-03-16', '84101711211', ['Z76.2'], '89.05',  '100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-16', '84101711211', ['Z39.2'], '89.05',  '100207', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa');
+
+            visits.add('2018-03-17', '84101711212', [], '89.05',  '100204', 'JERZY', 'S', 'BEATA NOWAK', 'świadczenie pielęgnacyjne');
+            visits.add('2018-03-17', '84101711212', ['Z76.2'], '89.05',  '100205', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-17', '84101711212', ['Z39'], '89.05',  '100207', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa');
+
+            // sprawdzenie ilości dodanych wizyt
+            expect(visits.getAll().length).toBe(30);
+            expect(visits.getData.withErrors().length).toBe(0);
 
             const multipleVisitsOfDay = visits.findMultipleVisitsOfDay();
             // sprawdzenie ilości znalezionych "dubli" (czyli dni w których było wiele wizyt dla tego samego pacjenta)
