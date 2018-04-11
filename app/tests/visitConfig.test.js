@@ -1,6 +1,6 @@
 const expect = require('expect');
 
-const {isIcd10NotRequired, isPatronage} = require('../config/visitsConfig');
+const {isIcd10NotRequired, isPatronage, nfzCodeIsAllowed} = require('../config/visitsConfig');
 
 describe('config.js', () => {
     
@@ -126,6 +126,16 @@ describe('config.js', () => {
             expect(isPatronage([], '89.05', 'świadczenie diagnostyczne')).toBeFalsy();
             expect(isPatronage([], '89.05', 'świadczenie lecznicze')).toBeFalsy();
             
+        });
+    });
+
+    describe('nfzCodeIsAllowed()', () => {
+        it('should return true when allowed nfzCode given', () => {
+            expect(nfzCodeIsAllowed('5.01.00.0000089')).toBeTruthy();
+        });
+
+        it('should return false when not allowed nfzCode given', () => {
+            expect(nfzCodeIsAllowed('5.01.00.1000089')).toBeFalsy();
         });
     });
 }); 

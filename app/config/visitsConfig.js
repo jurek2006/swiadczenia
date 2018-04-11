@@ -26,4 +26,20 @@ const isPatronage = (icd10arr, icd9, visitName) => {
         );
 }
 
-module.exports = {isIcd10NotRequired, isPatronage}
+const nfzCodesAllowed = [
+    '100204', //świadczenie profilaktyczne
+    '100205', //świadczenie diagnostyczne
+    '100206', //świadczenie pielęgnacyjne
+    '100207', //świadczenie lecznicze
+    '100208', //świadczenie rehabilitacyjne
+    '100302', //wizyta domowa
+    '5.01.00.0000089', //wizyta patronażowa
+    '5.01.00.0000104', //bilans zdrowia
+    '5.01.00.0000107', //wizyta patronażowa pielęgniarki poz
+    '5.01.00.0000121', //porada lekarska udzielona w miejscu udzielania świadczeń
+    '5.01.00.0000122', //porada lekarska udzielona w domu pacjenta
+];
+
+const nfzCodeIsAllowed = (nfzCode) => nfzCodesAllowed.includes(nfzCode); //sprawdza czy przekazany kod jest na liście dozwolonych
+
+module.exports = {isIcd10NotRequired, isPatronage, nfzCodeIsAllowed}
