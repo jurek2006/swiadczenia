@@ -41,6 +41,23 @@ app.get('/', (req, res) => {
 		}); 
 });
 
+// route wyświetlająca JSON z wszystkimi wczytanymi wizytami
+app.get('/all', (req, res) => {
+	
+	visits.removeAll();
+	readFile('../../data/data.csv')
+		.then(dataFromFile => {
+			
+			const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
+			visits.importManyFromArray(dataRawArr);
+			res.send(visits.getAll());
+			
+		}).catch(err => {
+			console.log(err);
+			res.status(400).send(err);
+		}); 
+});
+
 if(!module.parent){
     app.listen(3000, () => {
         console.log(`Started on port 3000`);
