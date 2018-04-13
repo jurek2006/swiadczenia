@@ -266,4 +266,4 @@ const saveAllToJSON = () => {
     }, '../../exports', 'dataAll.json').then(res => console.log(res)).catch(err => console.log(err));
 }
 
-module.exports = {add, importManyFromArray, showAll, getAll, onlyExported, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON};
+module.exports = {Visit, add, importManyFromArray, showAll, getAll, onlyExported, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON};

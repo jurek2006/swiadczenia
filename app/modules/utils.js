@@ -34,9 +34,30 @@ const readFile = (pathToFile) => {
 	});
 }
 
+const saveFile = (pathToWrite) => {
+
+    return new Promise((resolve, reject) => {
+        fs.writeFile(path.join(__dirname, pathToWrite), 'dupajs', (err) => {
+            if (err) reject(err);
+
+            resolve(`Plik ${pathToWrite} został zapisany`);
+        });
+    });
+
+
+}
+
+const splitDataToArr = (readTextData) => {
+// funkcja dzieląca zczytany plik z danymi na tabelę dwuwymiarową
+// - rozdział wierszy na podstawie znaku końca linii
+// - rozdział elementów w wierszu na podstawie tabulacji
+
+    return readTextData.split("\r\n").map(line =>line.split("\t")); 
+}
+
 const deepCopy = (sourceObj) => {
 // zwraca deep copy obiektu
     return JSON.parse(JSON.stringify(sourceObj));
 }
 
-module.exports = {saveJSON, readFile, deepCopy}
+module.exports = {saveJSON, readFile, saveFile, deepCopy, splitDataToArr}
