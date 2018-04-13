@@ -17,6 +17,37 @@ class Visit{
         this.staff = staff;
         this.visitName = visitName;
     }
+
+    toCsv(separator = '\t', fieldsOrderArr) {
+    // eksportuje dane wizyty do csv
+    // seperator określa znak rozdzielenia pola
+    // fieldsOrderArr [opcjonalne] - to tablica kolejności eksportu pól do linii csv (gdy nie ma takiego pola - wstawiana pusta wartość) - gdy nie ma tablicy, po kolei pola Visits
+        
+        if(!fieldsOrderArr){
+            return `${this.date}${separator}${this.pesel}${separator}${this.icd10.concat(['', '', '', '']).slice(0,4).join(separator)}${separator}${this.icd9}${separator}${this.nfzCode}${separator}${this.patientFirstName}${separator}${this.patientLastName}${separator}${this.staff}${separator}${this.visitName}`;
+        } else {
+            let output = '';
+            fieldsOrderArr.forEach((currField, index) => {
+                
+                if(this[currField]){
+                    // jeśli pole currField istnieje w Visits - dodawana jest wartość pola (bez separatora na końcu, bo to może być ostatnie pole w linii, po którym nie ma separatora)
+                    if(currField === 'icd10'){
+                        output += this.icd10.concat(['', '', '', '']).slice(0,4).join(separator);
+                    } else {
+                        output += this[currField];
+                    }
+                }
+
+                if(index < fieldsOrderArr.length -1 ){
+                // jeśli nie jest to ostatnie pole, dodajemy separator
+                    output += separator;
+                }
+
+            });
+            
+            return output;
+        }
+    };
 }
 
 const visits = [];
@@ -79,9 +110,9 @@ const add = (date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastNam
         visitName
     });
     return false;
+}   
+
 }
-    
-};
 
 const importManyFromArray = (rawDataArr, hasHeader = true) => {
 // funkcja importująca wizyty z tablicy dwuwymiarowej danych
@@ -266,4 +297,4 @@ const saveAllToJSON = () => {
     }, '../../exports', 'dataAll.json').then(res => console.log(res)).catch(err => console.log(err));
 }
 
-module.exports = {Visit, add, importManyFromArray, showAll, getAll, onlyExported, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON};
+module.exports = {Visit, add, importManyFromArray, showAll, getAll, onlyExported, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON, };

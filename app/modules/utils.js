@@ -34,10 +34,10 @@ const readFile = (pathToFile) => {
 	});
 }
 
-const saveFile = (pathToWrite) => {
+const saveFile = (dataToWrite, pathToWrite) => {
 
     return new Promise((resolve, reject) => {
-        fs.writeFile(path.join(__dirname, pathToWrite), 'dupajs', (err) => {
+        fs.writeFile(path.join(__dirname, pathToWrite), dataToWrite, (err) => {
             if (err) reject(err);
 
             resolve(`Plik ${pathToWrite} został zapisany`);

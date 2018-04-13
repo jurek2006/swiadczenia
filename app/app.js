@@ -6,7 +6,8 @@ const express = require('express');
 const yargs = require('yargs');
 
 const visits = require('../app/modules/visits'); //moduł do przechowywania danych wizyt
-const {readFile, saveFile, splitDataToArr} = require('../app/modules/utils');
+const {readFile, saveFile, saveJSON, splitDataToArr} = require('../app/modules/utils');
+const {anonymiseVisits} = require('./modules/anonymise');
 
 const argv = yargs	
 	.options({
@@ -28,7 +29,9 @@ if(argv.anonymise){
 					
 			const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
 			visits.importManyFromArray(dataRawArr);
-			return saveFile('../../dataX/dupa.txt');
+			const visitsAnonymised = anonymiseVisits(visits.getAll());
+			// return saveFile('../../data/dataAfterAn.csv', visitsAnonymised);
+			return saveFile(visitsAnonymised, '../../data/dataAfterAn.txt');
 
 		})
 		.then(res => console.log(res))

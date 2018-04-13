@@ -9,7 +9,7 @@ beforeEach(() => {
     visits.removeAll();
 });
 
-describe('Module visits', () => {
+    describe('Module visits', () => {
 
     describe('visits.add()', () => {
 
@@ -372,6 +372,78 @@ describe('Module visits', () => {
 
         });
 
+    });
+
+    describe('visits.toCsv()', () => {
+        it('should return csv line for Visit instance in standard order with default separator', () => {
+
+            let visit = new visits.Visit('2018-03-02', '84101711211', ['B02', 'C03'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            expect(visit.toCsv()).toBe('2018-03-02\t84101711211\tB02\tC03\t\t\t89.00\t5.01.00.0000121\tJERZY\tS\tRAFAŁ CZEKIEL\tporada lekarska udzielona w miejscu udzielania świadczeń');
+
+            visit = new visits.Visit('2018-03-02', '84101711211', ['B02', 'C03', 'M11', 'N01'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            expect(visit.toCsv()).toBe('2018-03-02\t84101711211\tB02\tC03\tM11\tN01\t89.00\t5.01.00.0000121\tJERZY\tS\tRAFAŁ CZEKIEL\tporada lekarska udzielona w miejscu udzielania świadczeń');
+            
+            visit = new visits.Visit('2018-03-16', '84101711217', [], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            expect(visit.toCsv()).toBe('2018-03-16\t84101711217\t\t\t\t\t89.05\t100205\tJERZY\tS\tRAFAŁ CZEKIEL\tświadczenie diagnostyczne');
+        });
+
+        it('should return csv line for Visit instance in standard order with given separator', () => {
+
+            let visit = new visits.Visit('2018-03-02', '84101711211', ['B02', 'C03'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            expect(visit.toCsv(',')).toBe('2018-03-02,84101711211,B02,C03,,,89.00,5.01.00.0000121,JERZY,S,RAFAŁ CZEKIEL,porada lekarska udzielona w miejscu udzielania świadczeń');
+
+            visit = new visits.Visit('2018-03-02', '84101711211', ['B02', 'C03', 'M11', 'N01'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            expect(visit.toCsv(',')).toBe('2018-03-02,84101711211,B02,C03,M11,N01,89.00,5.01.00.0000121,JERZY,S,RAFAŁ CZEKIEL,porada lekarska udzielona w miejscu udzielania świadczeń');
+            
+            visit = new visits.Visit('2018-03-16', '84101711217', [], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            expect(visit.toCsv(';')).toBe('2018-03-16;84101711217;;;;;89.05;100205;JERZY;S;RAFAŁ CZEKIEL;świadczenie diagnostyczne');
+        });
+
+        it('should return csv line for Visit instance in given order with default separator', () => {
+
+            let visit = new visits.Visit('2018-03-02', '84101711211', ['B02', 'C03', 'A11', 'Z10'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            expect(visit.toCsv(undefined, ['date', 'pesel', 'staff', 'icd10'])).toBe('2018-03-02\t84101711211\tRAFAŁ CZEKIEL\tB02\tC03\tA11\tZ10');
+            
+            visit = new visits.Visit('2018-03-16', '84101711217', ['A01', 'B02', 'C03', 'D04'], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            expect(visit.toCsv(undefined, ['icd10', 'pesel', 'date'])).toBe('A01\tB02\tC03\tD04\t84101711217\t2018-03-16');
+
+            visit = new visits.Visit('2018-03-16', '84101711217', ['A01', 'B02'], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            expect(visit.toCsv(undefined, ['icd10', 'pesel', 'date'])).toBe('A01\tB02\t\t\t84101711217\t2018-03-16');
+
+            visit = new visits.Visit('2018-03-16', '84101711217', [], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            expect(visit.toCsv(undefined, ['icd10', 'pesel', 'date'])).toBe('\t\t\t\t84101711217\t2018-03-16');
+        });
+
+        it('should return csv line for Visit instance in given order with given separator', () => {
+
+            let visit = new visits.Visit('2018-03-02', '84101711211', ['B02', 'C03', 'A11', 'Z10'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            expect(visit.toCsv(',', ['date', 'pesel', 'staff', 'icd10'])).toBe('2018-03-02,84101711211,RAFAŁ CZEKIEL,B02,C03,A11,Z10');
+            
+            visit = new visits.Visit('2018-03-16', '84101711217', ['A01', 'B02', 'C03', 'D04'], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            expect(visit.toCsv(';', ['icd10', 'pesel', 'date'])).toBe('A01;B02;C03;D04;84101711217;2018-03-16');
+
+            visit = new visits.Visit('2018-03-16', '84101711217', [], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            expect(visit.toCsv(' | ', ['icd10', 'pesel', 'date'])).toBe(' |  |  |  | 84101711217 | 2018-03-16');
+        });
+
+        it('should return csv line for Visit instance in given order (with non-existing fields) with default separator', () => {
+
+            let visit = new visits.Visit('2018-03-02', '84101711211', ['B02', 'C03', 'A11', 'Z10'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            expect(visit.toCsv(undefined, ['date', 'nonExisting', 'pesel', 'nonExisting', 'staff', 'icd10'])).toBe('2018-03-02\t\t84101711211\t\tRAFAŁ CZEKIEL\tB02\tC03\tA11\tZ10');
+            
+            visit = new visits.Visit('2018-03-16', '84101711217', ['A01', 'B02', 'C03', 'D04'], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            expect(visit.toCsv(undefined, ['nonExisting', 'icd10', 'pesel', 'date', 'nonExisting'])).toBe('\tA01\tB02\tC03\tD04\t84101711217\t2018-03-16\t');
+        });
+
+        it('should return csv line for Visit instance in given order (with non-existing fields) with given separator', () => {
+
+            let visit = new visits.Visit('2018-03-02', '84101711211', ['B02', 'C03', 'A11', 'Z10'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            expect(visit.toCsv(',', ['date', 'pesel', 'nonExisting', 'staff', 'icd10', 'nonExisting'])).toBe('2018-03-02,84101711211,,RAFAŁ CZEKIEL,B02,C03,A11,Z10,');
+            
+            visit = new visits.Visit('2018-03-16', '84101711217', ['A01', 'B02', 'C03', 'D04'], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            expect(visit.toCsv(';', ['icd10', 'pesel', 'date', 'nonExisting', 'nonExisting', 'nonExisting' ])).toBe('A01;B02;C03;D04;84101711217;2018-03-16;;;');
+
+        });
     });
 
     describe('visits.onlyExported()', () => {
