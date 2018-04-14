@@ -9,7 +9,7 @@ beforeEach(() => {
     visits.removeAll();
 });
 
-    describe('Module visits', () => {
+describe('Module visits', () => {
 
     describe('visits.add()', () => {
 
@@ -374,7 +374,57 @@ beforeEach(() => {
 
     });
 
-    describe('visits.toCsv()', () => {
+    describe('isVisitsArr()', () => {
+
+        it('should return true for array of Visit instances', () => {
+            const visitsArr = [
+                // poprawne instancje Visits
+                new visits.Visit('2018-03-01', '84101711210', ['Y11'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-01', '84101711210', ['Z11'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-01', '84101711210', ['A01', 'B02', 'C03'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                
+                new visits.Visit('2018-03-15', '84101711210', [], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'świadczenie profilaktyczne'),
+                new visits.Visit('2018-03-15', '84101711210', ['Z76.2'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz'),
+                new visits.Visit('2018-03-15', '84101711210', ['Z39'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa'),
+                
+                new visits.Visit('2018-03-01', '84101711210', ['Y11'], '89.00',  '100204', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-01', '84101711210', ['Z11'], '89.00',  '100205', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-01', '84101711210', ['A01', 'B02', 'C03'], '89.00', '100207',  'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-15', '84101711210', [], '89.05',  '100204', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'świadczenie profilaktyczne'),
+            ];
+            
+            expect(visits.isVisitsArr(visitsArr)).toBeTruthy();
+        });
+        
+        it('should return false as variable given is array but not with Visit instances only', () => {
+            const visitsArr = [
+                // poprawne instancje Visits
+                new visits.Visit('2018-03-01', '84101711210', ['Y11'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-01', '84101711210', ['Z11'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-01', '84101711210', ['A01', 'B02', 'C03'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                
+                new visits.Visit('2018-03-15', '84101711210', [], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'świadczenie profilaktyczne'),
+                new visits.Visit('2018-03-15', '84101711210', ['Z76.2'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz'),
+                new visits.Visit('2018-03-15', '84101711210', ['Z39'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa'),
+                //to nie jest instancja Visits, nawet jeśli zawiera wszystkie wymagane dane
+                {date: '2018-03-01', pesel: '84101711210', icd10: ['Y11'], icd9: '89.00', nfzCode: '100204', patientFirstName: 'JERZY', patientLastName: 'S', staff: 'RAHMAN IRENA', visitName: 'porada lekarska udzielona w miejscu udzielania świadczeń'},
+                
+                // poprawne instancje Visits
+                new visits.Visit('2018-03-01', '84101711210', ['Y11'], '89.00',  '100204', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-01', '84101711210', ['Z11'], '89.00',  '100205', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-01', '84101711210', ['A01', 'B02', 'C03'], '89.00', '100207',  'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-15', '84101711210', [], '89.05',  '100204', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'świadczenie profilaktyczne'),
+            ];
+            
+            expect(visits.isVisitsArr(visitsArr)).toBeFalsy();
+        });
+        
+        it('should return false as variable given is not an array', () => {
+               expect(visits.isVisitsArr('')).toBeFalsy();
+        })
+    });
+
+    describe('Visit.toCsv()', () => {
         it('should return csv line for Visit instance in standard order with default separator', () => {
 
             let visit = new visits.Visit('2018-03-02', '84101711211', ['B02', 'C03'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
@@ -806,4 +856,10 @@ beforeEach(() => {
         });
         
     });
+
+    // describe('visits.conertAllToCsv', () => {
+    //     it('should convert visits to only header as there is no visit', () => {
+
+    //     });
+    // });
 });

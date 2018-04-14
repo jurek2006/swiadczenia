@@ -96,21 +96,21 @@ const add = (date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastNam
         }
 
         return visitToAdd;
-} else {
+    } else {
     
-    dataWithErrors.push({
-        date,
-        pesel,
-        icd10,
-        icd9,
-        nfzCode,
-        patientFirstName,
-        patientLastName,
-        staff,
-        visitName
-    });
-    return false;
-}   
+        dataWithErrors.push({
+            date,
+            pesel,
+            icd10,
+            icd9,
+            nfzCode,
+            patientFirstName,
+            patientLastName,
+            staff,
+            visitName
+        });
+        return false;
+    }   
 
 }
 
@@ -184,6 +184,9 @@ const onlyExported = () => {
 // zwraca kopię tablicy visits tylko z wizytami, które są eksportowane do NFZ
     return visits.filter(currVisit => nfzCodeIsExported(currVisit.nfzCode));
 }
+
+// sprawdza, czy variable jest tablicą i zawiera tylko instancje klasy Visits (zwraca true/false)
+const isVisitsArr = (variable) => Array.isArray(variable) && variable.every(currElem => currElem instanceof Visit );
 
 const getData = {
     withErrors: () => dataWithErrors.slice(),
@@ -297,4 +300,34 @@ const saveAllToJSON = () => {
     }, '../../exports', 'dataAll.json').then(res => console.log(res)).catch(err => console.log(err));
 }
 
-module.exports = {Visit, add, importManyFromArray, showAll, getAll, onlyExported, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON, };
+const convertAllToCsv = (visitsArr = getAll() ,fieldSeparator = '\t', itemSeparator = '\r\n') => {
+// konwertuje wszystkie wizyty do tekstu zgodnego z CSV
+// jeśli nie zadano argumentu tablicy visitsArr, to pobierane są one z globalnego w module visits
+// dodaje nagłówek
+    const dataToExport = [
+            {field: date, headerName: 'Data'},
+            {field: undefined, headerName: 'Kod MZ'},
+            {field: nfzCode, headerName: 'Kod NFZ'},
+            {field: visitName, headerName: 'Nazwa'},
+            {field: icd10[0], headerName: 'ICD-10 1'},
+            {field: icd10[1], headerName: 'ICD-10 2'},
+            {field: icd10[2], headerName: 'ICD-10 3'},
+            {field: icd10[3], headerName: 'ICD-10 4'},
+            {field: icd9, headerName: 'ICD-9 1'},
+            {field: undefined, headerName: 'ICD-9 2'},
+            {field: undefined, headerName: 'ICD-9 3'},
+            {field: undefined, headerName: 'ICD-9 4'},
+            {field: undefined, headerName: 'ICD-9 5'},
+            {field: undefined, headerName: 'ICD-9 6'},
+            {field: undefined, headerName: 'ICD-9 7'},
+            {field: undefined, headerName: 'ICD-9 8'},
+            {field: undefined, headerName: 'ICD-9 9'},
+            {field: undefined, headerName: 'ICD-9 10'},
+            {field: pesel, headerName: 'Pacjent	Pesel'},
+            {field: staff, headerName: 'Pacjent	Pesel'},
+            {field: pesel, headerName: 'Personel'},
+            {field: undefined, headerName: 'Numer kuponu RUM'}
+    ];
+}
+
+module.exports = {Visit, add, importManyFromArray, showAll, getAll, onlyExported, isVisitsArr, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON, };

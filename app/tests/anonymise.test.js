@@ -68,7 +68,7 @@ describe('Module anonymise', () => {
             anonymiseVisits({test: 'test'});
         } catch (err) {
             expect(err.name).toBe('TypeError');
-            expect(err.message).toBe('visitsArr is not an array');
+            expect(err.message).toBe(`visitsArr is not an array or contains not only Visit\'s class instances`);
         }
     });
 
@@ -91,17 +91,17 @@ describe('Module anonymise', () => {
             //to nie jest instancja Visits, nawet jeśli zawiera wszystkie wymagane dane
             {date: '2018-03-01', pesel: '84101711210', icd10: ['Y11'], icd9: '89.00', nfzCode: '100204', patientFirstName: 'JERZY', patientLastName: 'S', staff: 'RAHMAN IRENA', visitName: 'porada lekarska udzielona w miejscu udzielania świadczeń'}
         ];
-
+        
         let gotError;
+        debugger;
         try {
             anonymiseVisits(visitsArr);
         } catch (err) {
             gotError = err;
         }
-
         expect(gotError).toExist();
         expect(gotError.name).toBe('TypeError');
-        expect(gotError.message).toBe(`One or more items in visitsArr is not an Visit class instance`);
+        expect(gotError.message).toBe(`visitsArr is not an array or contains not only Visit\'s class instances`);
     });
 
 });

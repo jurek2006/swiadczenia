@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node app/app.js",
     "test": "mocha app/**/*.test.js",
-    "test-watch": "nodemon -e js --exec \"npm test\""
+    "test-watch": "nodemon -e js --exec \"npm test\"",
+    "debug": "node --inspect-brk app/app.js",
+    "debug-test": "mocha --inspect-brk app/**/*.test.js"
   },
   "repository": {
     "type": "git",
