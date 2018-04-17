@@ -22,26 +22,32 @@ class Visit{
     // eksportuje dane wizyty do csv
     // seperator określa znak rozdzielenia pola
     // fieldsOrderArr [opcjonalne] - to tablica kolejności eksportu pól do linii csv (gdy nie ma takiego pola - wstawiana pusta wartość) - gdy nie ma tablicy, po kolei pola Visits
+    // jeśli pole nie istnieje - wstawiana jest pusta wartość ''
+    // jeśli pole ma wartość false - w ogóle jest pomijane
         
         if(!fieldsOrderArr){
             return `${this.date}${separator}${this.pesel}${separator}${this.icd10.concat(['', '', '', '']).slice(0,4).join(separator)}${separator}${this.icd9}${separator}${this.nfzCode}${separator}${this.patientFirstName}${separator}${this.patientLastName}${separator}${this.staff}${separator}${this.visitName}`;
         } else {
+            
             let output = '';
             fieldsOrderArr.forEach((currField, index) => {
-                
                 if(this[currField]){
                     // jeśli pole currField istnieje w Visits - dodawana jest wartość pola (bez separatora na końcu, bo to może być ostatnie pole w linii, po którym nie ma separatora)
                     if(currField === 'icd10'){
+                    //jeśli pole o nazwie 'icd10'- łączy wszystkie icd10 dla wizyty, jeśli nie ma 4, to dopełnia pustymi stringami
                         output += this.icd10.concat(['', '', '', '']).slice(0,4).join(separator);
                     } else {
-                        output += this[currField];
+                            output += this[currField];
                     }
+                } else if(currField === 'patientFullName') {
+                //jeśli 'pole' o nazwie 'patientFullName' to łączy nazwisko i imię
+                    output += `${this.patientLastName} ${this.patientFirstName}`; 
                 }
 
-                if(index < fieldsOrderArr.length -1 ){
-                // jeśli nie jest to ostatnie pole, dodajemy separator
+                if(index < fieldsOrderArr.length -1 && currField !== false){
+                // jeśli nie jest to ostatnie pole i nazwa pola jest różna od false - dodajeme separator pola
                     output += separator;
-                }
+                } 
 
             });
             
@@ -300,34 +306,55 @@ const saveAllToJSON = () => {
     }, '../../exports', 'dataAll.json').then(res => console.log(res)).catch(err => console.log(err));
 }
 
-const convertAllToCsv = (visitsArr = getAll() ,fieldSeparator = '\t', itemSeparator = '\r\n') => {
+const convertAllToCsv = (visitsArr = getAll() ,fieldSeparator = '\t', lineSeparator = '\r\n') => {
 // konwertuje wszystkie wizyty do tekstu zgodnego z CSV
 // jeśli nie zadano argumentu tablicy visitsArr, to pobierane są one z globalnego w module visits
 // dodaje nagłówek
+// jeśli tablica visitsArr nie jest tablicą Visits - zwraca false
+// w dataToExport:
+//  - fieldName - nazwa pola (string) z instancji klasy Visit do którego wstawiane są dane (jeśli false, to dane pomijane, chociaż nagłówek dodawany)
+//  - headerName - nazwa dla pola, która pojawia się w nagłówku
+
+    if(!isVisitsArr(visitsArr)) return false;    
+
     const dataToExport = [
-            {field: date, headerName: 'Data'},
-            {field: undefined, headerName: 'Kod MZ'},
-            {field: nfzCode, headerName: 'Kod NFZ'},
-            {field: visitName, headerName: 'Nazwa'},
-            {field: icd10[0], headerName: 'ICD-10 1'},
-            {field: icd10[1], headerName: 'ICD-10 2'},
-            {field: icd10[2], headerName: 'ICD-10 3'},
-            {field: icd10[3], headerName: 'ICD-10 4'},
-            {field: icd9, headerName: 'ICD-9 1'},
-            {field: undefined, headerName: 'ICD-9 2'},
-            {field: undefined, headerName: 'ICD-9 3'},
-            {field: undefined, headerName: 'ICD-9 4'},
-            {field: undefined, headerName: 'ICD-9 5'},
-            {field: undefined, headerName: 'ICD-9 6'},
-            {field: undefined, headerName: 'ICD-9 7'},
-            {field: undefined, headerName: 'ICD-9 8'},
-            {field: undefined, headerName: 'ICD-9 9'},
-            {field: undefined, headerName: 'ICD-9 10'},
-            {field: pesel, headerName: 'Pacjent	Pesel'},
-            {field: staff, headerName: 'Pacjent	Pesel'},
-            {field: pesel, headerName: 'Personel'},
-            {field: undefined, headerName: 'Numer kuponu RUM'}
+            {fieldName: 'date', headerName: 'Data'},
+            {fieldName: 'empty', headerName: 'Kod MZ'},
+            {fieldName: 'nfzCode', headerName: 'Kod NFZ'},
+            {fieldName: 'visitName', headerName: 'Nazwa'},
+            {fieldName: 'icd10', headerName: 'ICD-10 1'}, //idc10 generuje 4 pola w danych
+            {fieldName: false, headerName: 'ICD-10 2'}, //tylko w nagłówku, bez żadnych danych wstawianych
+            {fieldName: false, headerName: 'ICD-10 3'}, //tylko w nagłówku, bez żadnych danych wstawianych
+            {fieldName: false, headerName: 'ICD-10 4'}, //tylko w nagłówku, bez żadnych danych wstawianych
+            {fieldName: 'icd9', headerName: 'ICD-9 1'},
+            {fieldName: 'empty', headerName: 'ICD-9 2'},
+            {fieldName: 'empty', headerName: 'ICD-9 3'},
+            {fieldName: 'empty', headerName: 'ICD-9 4'},
+            {fieldName: 'empty', headerName: 'ICD-9 5'},
+            {fieldName: 'empty', headerName: 'ICD-9 6'},
+            {fieldName: 'empty', headerName: 'ICD-9 7'},
+            {fieldName: 'empty', headerName: 'ICD-9 8'},
+            {fieldName: 'empty', headerName: 'ICD-9 9'},
+            {fieldName: 'empty', headerName: 'ICD-9 10'},
+            {fieldName: 'patientFullName', headerName: 'Pacjent'},
+            {fieldName: 'pesel', headerName: 'Pesel'},
+            {fieldName: 'staff', headerName: 'Personel'},
+            {fieldName: 'empty', headerName: 'Numer kuponu RUM'}
     ];
+
+    //złączenie wszystkich kolejnych headerName z dataExport
+    const csvHeader =  dataToExport.reduce((prevVal, currVal, index) => {
+        return prevVal + currVal.headerName + (index < (dataToExport.length - 1) ? fieldSeparator : ''); //dodanie seperatora pola, o ile nie jest to ostatnie pole
+    }, '') + lineSeparator;
+
+    let csvContent = '';
+    const fieldsOrderArr = dataToExport.map(field => field.fieldName);
+    
+    visitsArr.forEach(currVis => {
+        csvContent += currVis.toCsv( fieldSeparator ,fieldsOrderArr) + lineSeparator;
+    });
+
+    return csvHeader + csvContent;
 }
 
-module.exports = {Visit, add, importManyFromArray, showAll, getAll, onlyExported, isVisitsArr, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON, };
+module.exports = {Visit, add, importManyFromArray, showAll, getAll, onlyExported, isVisitsArr, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON, convertAllToCsv};

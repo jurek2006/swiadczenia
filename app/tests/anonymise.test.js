@@ -93,7 +93,6 @@ describe('Module anonymise', () => {
         ];
         
         let gotError;
-        debugger;
         try {
             anonymiseVisits(visitsArr);
         } catch (err) {

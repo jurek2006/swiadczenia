@@ -476,6 +476,21 @@ describe('Module visits', () => {
             expect(visit.toCsv(' | ', ['icd10', 'pesel', 'date'])).toBe(' |  |  |  | 84101711217 | 2018-03-16');
         });
 
+        it('should return csv line for Visit instance (with patientFullName property) in given order with default separator', () => {
+
+            let visit = new visits.Visit('2018-03-02', '84101711211', ['B02', 'C03', 'A11', 'Z10'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            expect(visit.toCsv(undefined, ['date', 'pesel', 'staff', 'icd10', 'patientFullName'])).toBe('2018-03-02\t84101711211\tRAFAŁ CZEKIEL\tB02\tC03\tA11\tZ10\tS JERZY');
+            
+            visit = new visits.Visit('2018-03-16', '84101711217', ['A01', 'B02', 'C03', 'D04'], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            expect(visit.toCsv(undefined, ['icd10', 'pesel', 'date'])).toBe('A01\tB02\tC03\tD04\t84101711217\t2018-03-16');
+
+            visit = new visits.Visit('2018-03-16', '84101711217', ['A01', 'B02'], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            expect(visit.toCsv(undefined, ['icd10', 'pesel', 'date'])).toBe('A01\tB02\t\t\t84101711217\t2018-03-16');
+
+            visit = new visits.Visit('2018-03-16', '84101711217', [], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            expect(visit.toCsv(undefined, ['icd10', 'pesel', 'date'])).toBe('\t\t\t\t84101711217\t2018-03-16');
+        });
+
         it('should return csv line for Visit instance in given order (with non-existing fields) with default separator', () => {
 
             let visit = new visits.Visit('2018-03-02', '84101711211', ['B02', 'C03', 'A11', 'Z10'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
@@ -857,9 +872,70 @@ describe('Module visits', () => {
         
     });
 
-    // describe('visits.conertAllToCsv', () => {
-    //     it('should convert visits to only header as there is no visit', () => {
+    describe('visits.convertAllToCsv', () => {
+        it('should convert visits to only header as there is empty visitsArr given, with default separators', () => {
 
-    //     });
-    // });
+            const csvText = visits.convertAllToCsv([]);
+            expect(csvText).toBe('Data\tKod MZ\tKod NFZ\tNazwa\tICD-10 1\tICD-10 2\tICD-10 3\tICD-10 4\tICD-9 1\tICD-9 2\tICD-9 3\tICD-9 4\tICD-9 5\tICD-9 6\tICD-9 7\tICD-9 8\tICD-9 9\tICD-9 10\tPacjent\tPesel\tPersonel\tNumer kuponu RUM\r\n');
+        });
+
+        it('should convert visits to only header as there is empty visitsArr given, with given separators', () => {
+
+            const csvText = visits.convertAllToCsv([],', ', '; ');
+            expect(csvText).toBe('Data, Kod MZ, Kod NFZ, Nazwa, ICD-10 1, ICD-10 2, ICD-10 3, ICD-10 4, ICD-9 1, ICD-9 2, ICD-9 3, ICD-9 4, ICD-9 5, ICD-9 6, ICD-9 7, ICD-9 8, ICD-9 9, ICD-9 10, Pacjent, Pesel, Personel, Numer kuponu RUM; ');
+        });
+
+        it('should return false as given visitsArr is not array with only class Visits instances', () => {
+            const visitsArr = [
+                {cosTam: false}, //nie jest instancją Visits
+                new visits.Visit('2018-03-01', '84101711210', ['Y11'], '89.00',  '100204', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-01', '84101711210', ['Z11'], '89.00',  '100205', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-01', '84101711210', ['A01', 'B02', 'C03'], '89.00', '100207',  'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-15', '84101711210', [], '89.05',  '100204', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'świadczenie profilaktyczne'),
+            ];
+
+            expect(visits.convertAllToCsv(visitsArr)).toBeFalsy();
+        });
+
+        it('should convert visits arr to csv text, with default separators', () => {
+
+            const visitsArr = [
+                // poprawne instancje Visits
+                new visits.Visit('2018-03-01', '84101711210', ['Y11'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-01', '84101711210', ['A01', 'B02', 'C03'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                
+                new visits.Visit('2018-03-15', '84101711217', [], '89.05',  '100204', 'FRANEK', 'D', 'HOSNER ALINA', 'świadczenie profilaktyczne'),
+                new visits.Visit('2018-03-15', '84101711210', ['Z76.2', 'A01', 'B02', 'C03'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz'),
+            ];
+            const csvText = visits.convertAllToCsv(visitsArr);
+            const expectedCsv = 'Data\tKod MZ\tKod NFZ\tNazwa\tICD-10 1\tICD-10 2\tICD-10 3\tICD-10 4\tICD-9 1\tICD-9 2\tICD-9 3\tICD-9 4\tICD-9 5\tICD-9 6\tICD-9 7\tICD-9 8\tICD-9 9\tICD-9 10\tPacjent\tPesel\tPersonel\tNumer kuponu RUM\r\n' 
+                                + '2018-03-01\t\t5.01.00.0000121\tporada lekarska udzielona w miejscu udzielania świadczeń\tY11\t\t\t\t89.00\t\t\t\t\t\t\t\t\t\tS JERZY\t84101711210\tRAHMAN IRENA\t\r\n'
+                                + '2018-03-01\t\t5.01.00.0000121\tporada lekarska udzielona w miejscu udzielania świadczeń\tA01\tB02\tC03\t\t89.00\t\t\t\t\t\t\t\t\t\tS JERZY\t84101711210\tDUDYCZ JOLANTA\t\r\n'
+                                + '2018-03-15\t\t100204\tświadczenie profilaktyczne\t\t\t\t\t89.05\t\t\t\t\t\t\t\t\t\tD FRANEK\t84101711217\tHOSNER ALINA\t\r\n'
+                                + '2018-03-15\t\t5.01.00.0000121\twizyta patronażowa pielęgniarki poz\tZ76.2\tA01\tB02\tC03\t89.05\t\t\t\t\t\t\t\t\t\tS JERZY\t84101711210\tDUDYCZ JOLANTA\t\r\n';
+
+            expect(csvText).toBe(expectedCsv);
+        });
+
+        it('should convert visits arr to csv text, with given separators , and ;', () => {
+
+            const visitsArr = [
+                // poprawne instancje Visits
+                new visits.Visit('2018-03-01', '84101711210', ['Y11'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                new visits.Visit('2018-03-01', '84101711210', ['A01', 'B02', 'C03'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                
+                new visits.Visit('2018-03-15', '84101711217', [], '89.05',  '100204', 'FRANEK', 'D', 'HOSNER ALINA', 'świadczenie profilaktyczne'),
+                new visits.Visit('2018-03-15', '84101711210', ['Z76.2', 'A01', 'B02', 'C03'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz'),
+            ];
+            const csvText = visits.convertAllToCsv(visitsArr, ',', ';');
+            const expectedCsv = 'Data,Kod MZ,Kod NFZ,Nazwa,ICD-10 1,ICD-10 2,ICD-10 3,ICD-10 4,ICD-9 1,ICD-9 2,ICD-9 3,ICD-9 4,ICD-9 5,ICD-9 6,ICD-9 7,ICD-9 8,ICD-9 9,ICD-9 10,Pacjent,Pesel,Personel,Numer kuponu RUM;' 
+                                + '2018-03-01,,5.01.00.0000121,porada lekarska udzielona w miejscu udzielania świadczeń,Y11,,,,89.00,,,,,,,,,,S JERZY,84101711210,RAHMAN IRENA,;'
+                                + '2018-03-01,,5.01.00.0000121,porada lekarska udzielona w miejscu udzielania świadczeń,A01,B02,C03,,89.00,,,,,,,,,,S JERZY,84101711210,DUDYCZ JOLANTA,;'
+                                + '2018-03-15,,100204,świadczenie profilaktyczne,,,,,89.05,,,,,,,,,,D FRANEK,84101711217,HOSNER ALINA,;'
+                                + '2018-03-15,,5.01.00.0000121,wizyta patronażowa pielęgniarki poz,Z76.2,A01,B02,C03,89.05,,,,,,,,,,S JERZY,84101711210,DUDYCZ JOLANTA,;';
+
+            expect(csvText).toBe(expectedCsv);
+        });
+
+    });
 });
