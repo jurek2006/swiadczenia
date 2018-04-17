@@ -75,7 +75,7 @@ const add = (date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastNam
         // lub podano icd9 dla którego nie jest wymagane (ani dozwolone) icd10 (wtedy isIcd10NotRequired(icd9) === true ) i nie przekazano żadnego icd10
         // wyjątkiem, kiedy dane są poprawne chociaż icd9 nie wymaga icd10, a te zostały przekazane są patronażami położnej lub pielęgniarki (kiedy isPatronage(icd10, icd9, visitName) === true)
     && ((!isIcd10NotRequired(icd9) && icd10validatedCount > 0 ) || (isIcd10NotRequired(icd9) && Array.isArray(icd10) && (icd10.length === 0 || isPatronage(icd10, icd9, visitName)) ))
-    && typeof pesel === 'string' && pesel.trim().length === 11 
+    && typeof pesel === 'string' && (pesel.trim().length === 11 || ( pesel.trim()[11] === 'a' && pesel.trim().length === 12)) //pesel jest poprawny, jeśli ma 11 znaków (pesel nieanonimizowany) albo ma ich 12 i ostatni to 'a' (pesel anonimizowany)
     && typeof icd9 === 'string' && icd9.trim().length === 5 && icd9[2] === '.' //sprawdzenie formatu kodu icd9 - musi być w stylu 89.00
     && typeof nfzCode === 'string' && nfzCodeIsAllowed(nfzCode) 
     && typeof patientFirstName === 'string' && patientFirstName.trim().length > 0
@@ -118,6 +118,11 @@ const add = (date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastNam
         return false;
     }   
 
+}
+
+const addInstance = (visitInst) => {
+// funkcja dodająca do tablicy visits instancję klasy Visit
+    return add(visitInst.date, visitInst.pesel, visitInst.icd10, visitInst.icd9, visitInst.nfzCode, visitInst.patientFirstName, visitInst.patientLastName, visitInst.staff, visitInst.visitName);
 }
 
 const importManyFromArray = (rawDataArr, hasHeader = true) => {
@@ -357,4 +362,4 @@ const convertAllToCsv = (visitsArr = getAll() ,fieldSeparator = '\t', lineSepara
     return csvHeader + csvContent;
 }
 
-module.exports = {Visit, add, importManyFromArray, showAll, getAll, onlyExported, isVisitsArr, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON, convertAllToCsv};
+module.exports = {Visit, add, addInstance, importManyFromArray, showAll, getAll, onlyExported, isVisitsArr, removeAll, getData, filterVisits, findMultipleVisitsOfDay, generateReportObj, saveReportAsJSON, saveAllToJSON, convertAllToCsv};

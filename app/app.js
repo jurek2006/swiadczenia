@@ -26,12 +26,12 @@ if(argv.anonymise){
 	visits.removeAll();
 	readFile('../../data/dataBeforeAn.csv')
 		.then(dataFromFile => {
-					
+			// import wizyt
 			const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
 			visits.importManyFromArray(dataRawArr);
-			const visitsAnonymised = anonymiseVisits(visits.getAll());
-			// return saveFile('../../data/dataAfterAn.csv', visitsAnonymised);
-			return saveFile(visitsAnonymised, '../../data/dataAfterAn.txt');
+
+			const visitsAnonymised = anonymiseVisits(visits.getAll()); //anonimizacja wszystkich wizyt
+			return saveFile(visits.convertAllToCsv(visitsAnonymised), '../../data/dataAfterAn.csv'); // konwersja wszystkich zanonimizowanych wizyt do CSV i zapisanie do pliku
 
 		})
 		.then(res => console.log(res))
