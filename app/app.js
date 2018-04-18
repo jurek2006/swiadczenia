@@ -9,6 +9,26 @@ const visits = require('../app/modules/visits'); //moduł do przechowywania dany
 const {readFile, saveFile, saveJSON, splitDataToArr} = require('../app/modules/utils');
 const {anonymiseVisits} = require('./modules/anonymise');
 
+const importAnonymiseAndSave = (pathToFileToAnonymise, pathToSaveAfter) => {
+	return new Promise((resolve, reject) => {
+		visits.removeAll();
+		readFile(pathToFileToAnonymise)
+			.then(dataFromFile => {
+				// import wizyt
+				const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
+				visits.importManyFromArray(dataRawArr);
+
+				const visitsAnonymised = anonymiseVisits(visits.getAll()); //anonimizacja wszystkich wizyt
+				return saveFile(visits.convertAllToCsv(visitsAnonymised), pathToSaveAfter); // konwersja wszystkich zanonimizowanych wizyt do CSV i zapisanie do pliku
+
+			})
+			.then(res => resolve(res))
+			.catch(err => {
+				reject(err);
+		}); 
+	})
+}
+
 const argv = yargs	
 	.options({
 		a: {
@@ -22,22 +42,10 @@ const argv = yargs
 	.argv;
 
 if(argv.anonymise){
-// jeśli przekazano podczas uruchomienia parametr -a (lub -anonymise) - uruchomienie funkcjonalności anonimizowania pliku
-	visits.removeAll();
-	readFile('../../data/dataBeforeAn.csv')
-		.then(dataFromFile => {
-			// import wizyt
-			const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
-			visits.importManyFromArray(dataRawArr);
-
-			const visitsAnonymised = anonymiseVisits(visits.getAll()); //anonimizacja wszystkich wizyt
-			return saveFile(visits.convertAllToCsv(visitsAnonymised), '../../data/dataAfterAn.csv'); // konwersja wszystkich zanonimizowanych wizyt do CSV i zapisanie do pliku
-
-		})
+	importAnonymiseAndSave('../../data/dataBeforeAn.csv', '../../data/dataAfterAn.csv')
 		.then(res => console.log(res))
-		.catch(err => {
-			console.log(err);
-		}); 
+		.catch(err => console.log(err));
+
 } else {
 // jeśli nie przekazano żadnego z powyższych parametrów
 
@@ -108,5 +116,5 @@ if(argv.anonymise){
 		});
 	}
 
-	module.exports = {app};
+	module.exports = {app, importAnonymiseAndSave};
 }

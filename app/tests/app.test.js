@@ -2,7 +2,7 @@ const expect = require('expect');
 const request = require('supertest');
 // const bodyParser = require('body-parser');
 
-const {app} = require('../app');
+const {app, importAnonymiseAndSave} = require('../app');
 const visits = require('../modules/visits');
 
 beforeEach(() => {
@@ -135,6 +135,48 @@ describe('app', () => {
                     done();
 
             });
+        });
+    });
+
+    describe('importAnonymiseAndSave()', () => {
+        it('should anonymise pesels in given file and write it back to new csv', () => {
+            const filePathToAnonymise = '../../data/dataBeforeAn.csv';
+            const filePathToSaveAfter = '../../data/dataAfterAn.csv';
+
+            return importAnonymiseAndSave(filePathToAnonymise, filePathToSaveAfter)
+                .then(res => {
+                    expect(res).toBe(`Plik ${filePathToSaveAfter} został zapisany`);
+            });
+        });
+
+        it('should return ENOENT error as file with data does not exists', () => {
+        // testowanie czy zaistniał odpowiedni błąd - o kodzie ENOENT - nie można odczytać lub zapisać pliku
+            const filePathToAnonymise = '../../data/notExisting.csv'; //PLIK NIE ISTNIEJE
+            const filePathToSaveAfter = '../../data/dataAfterAn.csv';
+
+            return importAnonymiseAndSave(filePathToAnonymise, filePathToSaveAfter)
+                .then(res => {
+                    console.log('res', res);
+                    return Promise.reject(new Error(`Plik istnieje`)); //rzucenie błędu, żeby przejść do catch, skoro promise zakończone sukcesem
+                })
+                .catch(err => {
+                    expect(err.code).toBe('ENOENT');
+                })
+        });
+
+        it('should return ENOENT error as path to save file does not exists', () => {
+            // testowanie czy zaistniał odpowiedni błąd - o kodzie ENOENT - nie można odczytać lub zapisać pliku
+            const filePathToAnonymise = '../../data/dataBeforeAn.csv';
+            const filePathToSaveAfter = '../../notExistingPath/dataAfterAn.csv'; //ŚCIEŻKA DO ZAPISU NIE ISTNIEJE
+
+            return importAnonymiseAndSave(filePathToAnonymise, filePathToSaveAfter)
+                .then(res => {
+                    console.log('res', res);
+                    return Promise.reject(new Error(`Plik istnieje`)); //rzucenie błędu, żeby przejść do catch, skoro promise zakończone sukcesem
+                })
+                .catch(err => {
+                    expect(err.code).toBe('ENOENT');
+                })
         });
     });
 });
