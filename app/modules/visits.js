@@ -239,16 +239,15 @@ const findMultipleVisitsOfDay = () => {
 //      data: [] - tablica wizyt
 // }}
 // w tym obiekcie elementy tylko dla dubli (jeśli jest jedno świadczenie dla pacjenta danego dnia, nie jest to brane pod uwagę)
-
     let visitsTemp = onlyExported(); //tylko wizyty eksportowane
 
     while((currVisit = visitsTemp.shift()) !== undefined){
     // dopóki zdjęty pierwszy element tablicy wizyt nie jest undefined - ściągamy go z tej tablicy
         
-        // znalezienie "dubli" czyli filtrowanie wszystkich wizyt dla tego samego peselu w ten sam dzień co currVisit 
+        // znalezienie "dubli" czyli filtrowanie wszystkich wizyt dla tego samego peselu w ten sam dzień co currVisit (currVisit już nie ma, bo zostało zdjęte)
         const foundDoubles = _.filter(visitsTemp, {date: currVisit.date, pesel: currVisit.pesel});
 
-        if(foundDoubles.length > 1){
+        if(foundDoubles.length > 0){
         // jeśli znaleziono jakieś duble dodanie ich do obiektu 
             
             // przygotowanie odpowiednich właściwości obiektu, jeśli nie istnieją
