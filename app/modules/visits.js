@@ -103,18 +103,23 @@ const add = (date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastNam
 
         return visitToAdd;
     } else {
-    
-        dataWithErrors.push({
-            date,
-            pesel,
-            icd10,
-            icd9,
-            nfzCode,
-            patientFirstName,
-            patientLastName,
-            staff,
-            visitName
-        });
+        // zapisanie w dataWithErrors tych danych, których nie dało się poprawnie importować do Visits
+        // wyjątkiem są te dane, dla których wszystkie pola są pustymi stringami, pustymi tablicami (lub o samych pustych wartościach) lub null
+
+
+        if(!(! date && !pesel && !icd10validatedCount && !icd9 && !nfzCode && !patientFirstName && !patientLastName && !staff && !visitName )){
+            dataWithErrors.push({
+                date,
+                pesel,
+                icd10,
+                icd9,
+                nfzCode,
+                patientFirstName,
+                patientLastName,
+                staff,
+                visitName
+            });
+        }
         return false;
     }   
 
@@ -129,6 +134,7 @@ const importManyFromArray = (rawDataArr, hasHeader = true) => {
 // funkcja importująca wizyty z tablicy dwuwymiarowej danych
 // hasHeader - określa czy pierwszy wiersz tablicy zawiera nagłówek zamiast danych
 // jeśli jest nagłówek dokonywana jest najpierw walidacja, czy dane są w odpowiednich kolumnach - jeśli jest ok - nagłówek jest usuwany, jeśli nie rzucany jest błąd
+// jeśli udało się skonwertować - zwraca true
 
     const verifyHeaderAndDelete = (rawDataArr) => {
 	    // sprawdza czy nagłówek dokumentu zawiera odpowiednie dane - jeśli tak - usuwa nagłówek, jeśli nie - rzuca error
@@ -170,11 +176,17 @@ const importManyFromArray = (rawDataArr, hasHeader = true) => {
         add(date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastName, staff, visitName);
     }
 
-    rawDataArr = verifyHeaderAndDelete(rawDataArr);
+    try{
+        rawDataArr = verifyHeaderAndDelete(rawDataArr);
+    } catch(err){
+        return err;
+    }
 
     // konwersja wszystkich wierszy tabeli na wizytę i dodanie ich do tablicy visits
     rawDataArr.forEach(currRow => convertRowToVisitAndAddToVisits(currRow));
 
+    // jeśli nie było błędu zwraca true
+    return true;
 }
 
 const showAll = () => {

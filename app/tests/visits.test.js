@@ -160,6 +160,56 @@ describe('Module visits', () => {
                 expect(visits.getData.withErrors().length).toBe(0);
                 expect(visits.getData.withWarnings().length).toBe(8);
             });
+
+            it('Should omit empty lines', () => {
+                const visitsArr = [
+                    // wizyty poprawne
+                    new visits.Visit('2018-03-02', '84101711211a', ['B02', 'C03'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                    new visits.Visit('2018-03-03', '84101711212a', ['A01', 'B02', 'C03'], '89.00', '5.01.00.0000122', 'JERZY', 'S', 'BEATA NOWAK', 'porada lekarska udzielona w domu pacjenta'),
+                    new visits.Visit('2018-03-04', '84101711213a', ['X11'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'),
+                    new visits.Visit('2018-03-15', '84101711210a', [], '89.05','100204', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'świadczenie profilaktyczne'),
+                    new visits.Visit('2018-03-16', '84101711211a', [], '89.05','100205', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne'),
+                    new visits.Visit('2018-03-17', '84101711212a', [], '89.05','100206', 'JERZY', 'S', 'BEATA NOWAK', 'świadczenie pielęgnacyjne'),
+                    new visits.Visit('2018-03-15', '84101711210a', ['Z76.2'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz'),
+                    new visits.Visit('2018-03-16', '84101711211a', ['Z76.2'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa pielęgniarki poz'),
+                    new visits.Visit('2018-03-17', '84101711212a', ['Z76.2'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz'),
+                    new visits.Visit('2018-03-15', '84101711210a', ['Z39'], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa'),
+                    new visits.Visit('2018-03-16', '84101711211a', ['Z39.2'], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa'),
+                    new visits.Visit('2018-03-17', '84101711212a', ['Z39'], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa'),
+                    new visits.Visit('2018-03-15', '84101711210a', ['Z39.2'], '89.05', '100302', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta domowa'),
+                    new visits.Visit('2018-03-16', '84101711211a', ['Z39.2'], '89.05', '100302', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta domowa'),
+                    new visits.Visit('2018-03-17', '84101711212a', ['Z39.2'], '89.05', '100302', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta domowa'),
+                    new visits.Visit('2018-03-15', '84101711210a', ['Z76.2', 'Z01'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz'),
+                    new visits.Visit('2018-03-16', '84101711211a', ['Z10', 'Z76.2'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa pielęgniarki poz'),
+                    new visits.Visit('2018-03-17', '84101711212a', ['A10', 'Z76.2', 'B11'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz'),
+                    new visits.Visit('2018-03-15', '84101711210a', ['Z39', 'Z10'], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa'),
+                    new visits.Visit('2018-03-16', '84101711211a', ['C11', 'Z39.2'], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa'),
+                    new visits.Visit('2018-03-17', '84101711212a', ['D13', 'Z39', 'B18'], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa'),
+                    // wizyty z ostrzeżeniami
+                    new visits.Visit('2018-03-01', '84101711210a', ['A01', 'B02', 'C3'], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń'), // z ostrzeżeniem ze względu na icd10
+                    new visits.Visit('2018-03-02', '84101711211a', ['B02', false], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń'), // z ostrzeżeniem ze względu na icd10
+                    new visits.Visit('2018-03-03', '84101711212a', ['A01', 'B02', 'C03', 'C'], '89.00', '5.01.00.0000122', 'JERZY', 'S', 'BEATA NOWAK', 'porada lekarska udzielona w domu pacjenta'), // z ostrzeżeniem ze względu na icd10
+                    new visits.Visit('2018-03-04', '84101711213a', ['X11', 100], '89.00', '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń'), // z ostrzeżeniem ze względu na icd10
+                    new visits.Visit('2018-03-16', '84101711211a', ['Z76.2', true], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa pielęgniarki poz'), // z ostrzeżeniem ze względu na icd10
+                    new visits.Visit('2018-03-17', '84101711212a', ['Z76.2', 'Z0'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz'), // z ostrzeżeniem ze względu na icd10
+                    new visits.Visit('2018-03-15', '84101711210a', ['Z39', 100], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa'), // z ostrzeżeniem ze względu na icd10
+                    new visits.Visit('2018-03-16', '84101711211a', ['Z39.2', ''], '89.05', '5.01.00.0000089', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa'), // z ostrzeżeniem ze względu na icd10
+                    // wizyty błędne
+                    new visits.Visit('', '84101711210a', ['Z76.2', 'Z01'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz'),
+                    new visits.Visit('2018-03-16', '84101711211a', [], '89.00', '5.01.00.0000107', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa pielęgniarki poz'),
+                    new visits.Visit('2018-03-17', '', ['A10', 'Z76.2', 'B11'], '89.05', '5.01.00.0000107', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz'),
+                    new visits.Visit('2018-03-15', '84101711210a', ['Z39', 'Z10'], '89.05', '5.01.00.0000089', '', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa'),
+                    // do pominięcia - nie dodawane do wizyt błędnych
+                    new visits.Visit('', '', [], '', '', '', '', '', ''),
+                ];
+
+                // dodanie wszystkich wizyt do Visits
+                visitsArr.forEach(currVisit => {visits.addInstance(currVisit)});
+                // sprawdzenie poprawnych ilości
+                expect(visits.getAll().length).toBe(29);
+                expect(visits.getData.withErrors().length).toBe(4);
+                expect(visits.getData.withWarnings().length).toBe(8);
+            });
         });
 
         describe('failure:', () => {

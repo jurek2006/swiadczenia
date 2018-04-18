@@ -48,41 +48,59 @@ if(argv.anonymise){
 		return visitsArr.filter(visit => visit.icd10.includes(icd10toFind) );
 	}
 
-	// route wyświetlająca JSON z raportem
-	app.get('/', (req, res) => {
+	// route GET /report/:filename' - importuje wizyty z pliku :filename i zwraca raport
+	app.get('/report/:filename', (req, res) => {
+		const filename = req.params.filename;
 		
 		visits.removeAll();
-		readFile('../../data/data.csv')
+		readFile('../../data/' + filename)
 			.then(dataFromFile => {
 				
 				const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
-				visits.importManyFromArray(dataRawArr);
+				const imported = visits.importManyFromArray(dataRawArr);
+
+				if(imported instanceof Error){
+					res.status(400).send(imported);
+				}
+
 				visits.findMultipleVisitsOfDay();
 				const report = visits.generateReportObj();
-				res.send(report);
+
+				res.send({
+					report
+				});
 				
 			}).catch(err => {
-				console.log(err);
-				res.status(400).send(err);
+				res.status(404).send(err);
 			}); 
 	});
 
-	// route wyświetlająca JSON z wszystkimi wczytanymi wizytami
-	app.get('/all', (req, res) => {
+	// route GET /read/:filename' - importuje wizyty z pliku :filename i zwraca je w odpowiedzi
+	app.get('/read/:filename', (req, res) => {
+		const filename = req.params.filename;
 		
 		visits.removeAll();
-		readFile('../../data/data.csv')
+		readFile('../../data/' + filename)
 			.then(dataFromFile => {
 				
 				const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
-				visits.importManyFromArray(dataRawArr);
-				res.send(visits.getAll());
+				const imported = visits.importManyFromArray(dataRawArr);
+
+				if(imported instanceof Error){
+					res.status(400).send(imported);
+				}
+
+				res.send({
+					visits: visits.getAll(),
+					dataWithWarnings: visits.getData.withWarnings(),
+					dataWithErrors: visits.getData.withErrors(),
+				});
 				
 			}).catch(err => {
-				console.log(err);
-				res.status(400).send(err);
+				res.status(404).send(err);
 			}); 
 	});
+
 
 	if(!module.parent){
 		app.listen(3000, () => {
