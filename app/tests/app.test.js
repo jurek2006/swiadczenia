@@ -1,9 +1,12 @@
+const _ = require('lodash');
 const expect = require('expect');
 const request = require('supertest');
-// const bodyParser = require('body-parser');
 
 const {app, importAnonymiseAndSave} = require('../app');
+const {readFile, splitDataToArr, deepCopy} = require('../modules/utils');
+const {anonymisePesel} = require('../config/hiddenConfig');
 const visits = require('../modules/visits');
+
 
 beforeEach(() => {
     visits.removeAll();
@@ -139,14 +142,70 @@ describe('app', () => {
     });
 
     describe('importAnonymiseAndSave()', () => {
+            const filePathToAnonymise = '../tests/anonymiseTestsData/test1.csv';
+            const filePathToSaveAfter = '../tests/anonymiseTestsData/test1_anonymised.csv';
+
         it('should anonymise pesels in given file and write it back to new csv', () => {
-            const filePathToAnonymise = '../../data/dataBeforeAn.csv';
-            const filePathToSaveAfter = '../../data/dataAfterAn.csv';
 
             return importAnonymiseAndSave(filePathToAnonymise, filePathToSaveAfter)
                 .then(res => {
                     expect(res).toBe(`Plik ${filePathToSaveAfter} został zapisany`);
             });
+        });
+
+        it('TO REFACTOR!!! should anonymise pesels in given file, write it back to new csv and then import properly visits from this anonymised file', () => {
+
+            // DODAĆ SPRAWDZENIE DLA KAŻDEJ WIZYTY, KTÓRĄ ZAIMPORTOWANO Z ORYGINALNEGO PLIKU CZY W PLIKU ZAPISYWANYM (I PO IMPORCIE) pesel jest odpowiednio zanonimizowany, a wszystkie inne dane się zgadzają
+
+            // wczytanie pliku niezanonimizowanego i zapisanie wizyt przez niego importowanych (deepCopy) do visitsBeforeAnonymise, 
+            // żeby mieć materiał do porównywania z danymi wczytanymi na końcu z pliku po anonimizacji
+            let visitsBeforeAnonymise;
+            visits.removeAll();
+            readFile(filePathToAnonymise)
+                .then(dataFromFile => {
+                    
+                    const dataRawArr =  splitDataToArr(dataFromFile); 
+                    visits.importManyFromArray(dataRawArr);
+
+                    visitsBeforeAnonymise = deepCopy(visits.getAll());
+                    console.log('visitsBeforeAnonymise:', visitsBeforeAnonymise.length);
+                    
+                    visits.removeAll(); 
+                });
+            
+            // uruchomienie testowanej funkcji
+            return importAnonymiseAndSave(filePathToAnonymise, filePathToSaveAfter)
+                .then(res => {
+                    expect(res).toBe(`Plik ${filePathToSaveAfter} został zapisany`);
+                    return readFile(filePathToSaveAfter);
+                }).then(dataFromFile => {
+                // gdy udało się bez błędów - wczytanie i importowanie danych wizyt z pliku po anonimizacji
+                    
+                    // wyczyszczenie zaimportowanych wizyt
+                    visits.removeAll(); 
+
+                    const dataRawArr =  splitDataToArr(dataFromFile); 
+                    const imported = visits.importManyFromArray(dataRawArr);
+                    
+                    // sprawdzenie czy udało się zapisać do i importować z nowego pliku taką samą ilośc wizyt jak zaimportowano poprawnie z pierwszego
+                    expect(visits.getAll().length).toEqual(visitsBeforeAnonymise.length);
+
+                    // dla każdej wizyty wczytanej z pliku oryginalnego sprawdzić anonimizację pesel i identyczność pozostałych danych
+                    debugger;
+                    visitsBeforeAnonymise = visitsBeforeAnonymise.map(currVisit => {
+                        const t = _.omit(currVisit, ['pesel']);
+                        t['pesel'] = anonymisePesel(currVisit['pesel']);
+                        return t;
+                    });
+
+                    visitsBeforeAnonymise.forEach(element => {
+                        const found = visits.filterVisits(element);
+                        //standardowo powinien być dla każdego elementu znaleziony dokładnie jeden element, ale z powodu działania 
+                        // visits.filterVisits(), która w odniesieniu do icd10 nie działa 'strict' i ze względu na potencjalne "identyczne duble" w danych, może być więcej niż 1, więc powinno być nie mniej niż jeden
+                        expect(found.length).toBeMoreThan(0); 
+                    });
+                    
+                });
         });
 
         it('should return ENOENT error as file with data does not exists', () => {

@@ -227,6 +227,7 @@ const removeAll = () => {
 
 const filterVisits = (visitsSearchObj) => {
 // funkcja filtrująca wizyty z visits na podstawie zgodności właściwości visitsSearchObj z wizytą
+// tablicę icd10 bierze pod uwagę tak, że wszystkie icd10 z visitsSearchObj muszą się znaleźć w wizycie, natomiast może miec ona także inne rozpoznania
     return _.filter(visits, visitsSearchObj);
 }
 

@@ -796,6 +796,29 @@ describe('Module visits', () => {
             expect(foundVisits.length).toBe(0);
         });
 
+        it('should return visits matching all properties', () => {
+            const dataPropToFind = {date: '2018-03-15', pesel: '84101711210', icd10: ['Z39'], icd9: '89.05', visitName: 'wizyta patronażowa', nfzCode: '5.01.00.0000121', patientFirstName: 'JERZY', patientLastName: 'S', staff: 'DUDYCZ JOLANTA'};
+            const foundVisits = visits.filterVisits(dataPropToFind);
+            expect(foundVisits.length).toBe(1);
+            foundVisits.forEach(currFoundVisit => {
+                expect(currFoundVisit.date).toEqual(dataPropToFind.date);
+                expect(currFoundVisit.pesel).toEqual(dataPropToFind.pesel);
+                expect(currFoundVisit.icd10).toEqual(dataPropToFind.icd10);
+                expect(currFoundVisit.icd9).toEqual(dataPropToFind.icd9);
+                expect(currFoundVisit.visitName).toEqual(dataPropToFind.visitName);
+                expect(currFoundVisit.nfzCode).toEqual(dataPropToFind.nfzCode);
+                expect(currFoundVisit.patientFirstName).toEqual(dataPropToFind.patientFirstName);
+                expect(currFoundVisit.patientLastName).toEqual(dataPropToFind.patientLastName);
+                expect(currFoundVisit.staff).toEqual(dataPropToFind.staff);
+            });
+        });
+
+        it('should return no visit when just one property is a bit different', () => {
+            const dataPropToFind = {date: '2018-03-15', pesel: '84101711210x', icd10: ['Z39'], icd9: '89.05', visitName: 'wizyta patronażowa', nfzCode: '5.01.00.0000121', patientFirstName: 'JERZY', patientLastName: 'S', staff: 'DUDYCZ JOLANTA'};
+            const foundVisits = visits.filterVisits(dataPropToFind);
+            expect(foundVisits.length).toBe(0);
+        });
+
     });
 
     describe('visits.findMultipleVisitsOfDay()', () => {
