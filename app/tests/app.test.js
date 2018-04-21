@@ -153,6 +153,15 @@ describe('app', () => {
             });
         });
 
+        it('should anonymise pesels in given file and write it when no path to save given', () => {
+            const filePathToAnonymise = '../tests/anonymiseTestsData/test1.csv';
+
+            return importAnonymiseAndSave(filePathToAnonymise)
+                .then(res => {
+                    expect(res).toBe(`Plik ../tests/anonymiseTestsData/test1_an.csv został zapisany`);
+            });
+        });
+
         it('TO REFACTOR!!! should anonymise pesels in given file, write it back to new csv and then import properly visits from this anonymised file', () => {
 
             // DODAĆ SPRAWDZENIE DLA KAŻDEJ WIZYTY, KTÓRĄ ZAIMPORTOWANO Z ORYGINALNEGO PLIKU CZY W PLIKU ZAPISYWANYM (I PO IMPORCIE) pesel jest odpowiednio zanonimizowany, a wszystkie inne dane się zgadzają

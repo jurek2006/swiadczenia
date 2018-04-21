@@ -10,6 +10,14 @@ const {readFile, saveFile, saveJSON, splitDataToArr} = require('../app/modules/u
 const {anonymiseVisits} = require('./modules/anonymise');
 
 const importAnonymiseAndSave = (pathToFileToAnonymise, pathToSaveAfter) => {
+	
+	if(!pathToSaveAfter){
+		// jeśli niezdefiniowano ścieżki zapisu tworzy ją na podstawie ścieżki do odczytywanego pliku - dodając domyślny przyrostek
+		// np. '../tests/anonymiseTestsData/test1.csv' > '../tests/anonymiseTestsData/test1_an.csv'
+		const suffixDefault = '_an';
+		pathToSaveAfter = pathToFileToAnonymise.substring(0, pathToFileToAnonymise.lastIndexOf('.')).concat(suffixDefault, pathToFileToAnonymise.substring(pathToFileToAnonymise.lastIndexOf('.')))
+	}
+
 	return new Promise((resolve, reject) => {
 		visits.removeAll();
 		readFile(pathToFileToAnonymise)
