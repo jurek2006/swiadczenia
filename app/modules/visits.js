@@ -176,11 +176,7 @@ const importManyFromArray = (rawDataArr, hasHeader = true) => {
         add(date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastName, staff, visitName);
     }
 
-    // try{
-        rawDataArr = verifyHeaderAndDelete(rawDataArr);
-    // } catch(err){
-    //     return err;
-    // }
+    rawDataArr = verifyHeaderAndDelete(rawDataArr);
 
     // konwersja wszystkich wierszy tabeli na wizytę i dodanie ich do tablicy visits
     rawDataArr.forEach(currRow => convertRowToVisitAndAddToVisits(currRow));

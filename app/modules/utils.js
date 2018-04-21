@@ -40,7 +40,10 @@ const saveFile = (dataToWrite, pathToWrite) => {
         fs.writeFile(path.join(__dirname, pathToWrite), dataToWrite, (err) => {
             if (err) reject(err);
 
-            resolve(`Plik ${pathToWrite} został zapisany`);
+            resolve({
+                message: `Plik ${pathToWrite} został zapisany`,
+                fileSaved: pathToWrite
+            });
         });
     });
 

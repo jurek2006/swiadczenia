@@ -149,7 +149,8 @@ describe('app', () => {
 
             return importAnonymiseAndSave(filePathToAnonymise, filePathToSaveAfter)
                 .then(res => {
-                    expect(res).toBe(`Plik ${filePathToSaveAfter} został zapisany`);
+                    expect(res.message).toBe(`Plik ${filePathToSaveAfter} został zapisany`);
+                    expect(res.fileSaved).toBe(filePathToSaveAfter);
             });
         });
 
@@ -158,7 +159,8 @@ describe('app', () => {
 
             return importAnonymiseAndSave(filePathToAnonymise)
                 .then(res => {
-                    expect(res).toBe(`Plik ../tests/anonymiseTestsData/test1_an.csv został zapisany`);
+                    expect(res.message).toBe(`Plik ../tests/anonymiseTestsData/test1_an.csv został zapisany`);
+                    expect(res.fileSaved).toBe('../tests/anonymiseTestsData/test1_an.csv');
             });
         });
 
@@ -185,7 +187,9 @@ describe('app', () => {
             // uruchomienie testowanej funkcji
             return importAnonymiseAndSave(filePathToAnonymise, filePathToSaveAfter)
                 .then(res => {
-                    expect(res).toBe(`Plik ${filePathToSaveAfter} został zapisany`);
+                    expect(res.message).toBe(`Plik ${filePathToSaveAfter} został zapisany`);
+                    expect(res.fileSaved).toBe(filePathToSaveAfter);
+                    
                     return readFile(filePathToSaveAfter);
                 }).then(dataFromFile => {
                 // gdy udało się bez błędów - wczytanie i importowanie danych wizyt z pliku po anonimizacji

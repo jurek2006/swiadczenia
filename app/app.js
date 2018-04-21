@@ -30,7 +30,7 @@ const importAnonymiseAndSave = (pathToFileToAnonymise, pathToSaveAfter) => {
 				return saveFile(visits.convertAllToCsv(visitsAnonymised), pathToSaveAfter); // konwersja wszystkich zanonimizowanych wizyt do CSV i zapisanie do pliku
 
 			})
-			.then(res => resolve(res))
+			.then(res => {resolve(`Plik ${pathToFileToAnonymise} został zanonimizowany i zapisany do ${res.fileSaved}`)})
 			.catch(err => {
 				reject(err);
 		}); 
@@ -38,19 +38,31 @@ const importAnonymiseAndSave = (pathToFileToAnonymise, pathToSaveAfter) => {
 }
 
 const argv = yargs	
-	.options({
-		a: {
-			alias: 'anonymise',
-			describe: 'Wczytuje plik csv wizyt - anonimizuje go testowo (z odwzorowaniem peseli i podmianą imienia i nazwiska) i zapisuje do kolejnego pliku csv',
-			boolean: true
-		}
+	.command('anonymise', 'Anonimizuje plik csv z danymi wizyt i zapisuje w analogicznym pliku wynikowym', {
+		source_filePath: {
+			describe: 'Ścieżka względna do pliku csv z danymi wizyt do zanonimizowania (wymagane)',
+			demand: true,
+			alias: 's',
+			string: true
+		},
+		output_filePath: {
+			describe: 'Ścieżka względna do pliku do zapisu zanonimizowanych wizyt (jeśli nie podane używa nazwy i ścieżki pliku źródłowego dodając _an w nazwie)',
+			alias: 'o',
+			string: true
+		},
 	})
 	.help()
 	.alias('help', 'h')
 	.argv;
 
-if(argv.anonymise){
-	importAnonymiseAndSave('../../data/dataBeforeAn.csv', '../../data/dataAfterAn.csv')
+const argvCommand = argv._[0];
+// jeśli uruchomiono app.js anonymise to za pomocą parametrów: 
+// -s musi być podana ścieżka do pliku z wizytami, 
+// -o może być podana ścieżka do zapisu wizyt po anonimizacji
+// np. node app.js anonymise -s 'dupa'
+if(argvCommand === 'anonymise'){
+	
+	importAnonymiseAndSave(argv.source_filePath, argv.output_filePath)
 		.then(res => console.log(res))
 		.catch(err => console.log(err));
 
