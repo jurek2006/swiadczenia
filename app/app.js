@@ -67,10 +67,6 @@ if(argv.anonymise){
 				const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
 				const imported = visits.importManyFromArray(dataRawArr);
 
-				if(imported instanceof Error){
-					res.status(400).send(imported);
-				}
-
 				visits.findMultipleVisitsOfDay();
 				const report = visits.generateReportObj();
 
@@ -79,7 +75,11 @@ if(argv.anonymise){
 				});
 				
 			}).catch(err => {
-				res.status(404).send(err);
+				if(err.message === 'Błędne nagłówki pliku z danymi. Sprawdź plik.'){
+					res.status(400).send(err);
+				} else {
+					res.status(404).send(err);
+				}
 			}); 
 	});
 
@@ -94,10 +94,6 @@ if(argv.anonymise){
 				const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
 				const imported = visits.importManyFromArray(dataRawArr);
 
-				if(imported instanceof Error){
-					res.status(400).send(imported);
-				}
-
 				res.send({
 					visits: visits.getAll(),
 					dataWithWarnings: visits.getData.withWarnings(),
@@ -105,7 +101,11 @@ if(argv.anonymise){
 				});
 				
 			}).catch(err => {
-				res.status(404).send(err);
+				if(err.message === 'Błędne nagłówki pliku z danymi. Sprawdź plik.'){
+					res.status(400).send(err);
+				} else {
+					res.status(404).send(err);
+				}
 			}); 
 	});
 

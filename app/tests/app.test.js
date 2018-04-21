@@ -182,7 +182,9 @@ describe('app', () => {
                 // gdy udało się bez błędów - wczytanie i importowanie danych wizyt z pliku po anonimizacji
                     
                     // wyczyszczenie zaimportowanych wizyt
-                    visits.removeAll(); 
+
+                    visits.removeAll();
+                    expect(visits.getAll().length).toEqual(0); 
 
                     const dataRawArr =  splitDataToArr(dataFromFile); 
                     const imported = visits.importManyFromArray(dataRawArr);
