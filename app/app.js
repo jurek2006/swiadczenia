@@ -37,6 +37,7 @@ const importAnonymiseAndSave = (pathToFileToAnonymise, pathToSaveAfter) => {
 				}
 			)})
 			.catch(err => {
+				
 				reject(err);
 		}); 
 	})
@@ -250,7 +251,9 @@ if(argvCommand === 'anonymise'){
 		console.log(`Output: ${argv.output}`);
 	}
 
-	importAnonymiseAndSave(inputPath, outputPath);
+	importAnonymiseAndSave(inputPath, outputPath)
+	.then(res => console.log(res.message))
+	.catch(err => console.log(err));
 	
 } else if (argvCommand === 'setDefault'){
 	if(argv.type !== 'input' && argv.type !== 'output'){
@@ -324,7 +327,7 @@ if(argvCommand === 'anonymise'){
 
 	readAnonymiseDefaultsPaths('../config/anonymise_defaults.json') //wczytuje domyślne ścieżki i nazwy plików zdefiniowane dla anonimizacji 
 	.then(defaults => console.log(defaults)) //jeśli się powiodło - wyświetla je
-	.catch(err => console.log(err));
+	.catch(err => console.log(err.message));
 	
 } else {
 // jeśli nie przekazano żadnego z powyższych parametrów
@@ -355,11 +358,8 @@ if(argvCommand === 'anonymise'){
 				});
 				
 			}).catch(err => {
-				if(err.message === 'Błędne nagłówki pliku z danymi. Sprawdź plik.'){
-					res.status(400).send(err);
-				} else {
-					res.status(404).send(err);
-				}
+					console.log(err.message);
+					res.status(404).send({error: err.message});
 			}); 
 	});
 
@@ -381,12 +381,9 @@ if(argvCommand === 'anonymise'){
 				});
 				
 			}).catch(err => {
-				if(err.message === 'Błędne nagłówki pliku z danymi. Sprawdź plik.'){
-					res.status(400).send(err);
-				} else {
-					res.status(404).send(err);
-				}
-			}); 
+				console.log(err.message);
+				res.status(404).send({error: err.message});
+		}); 
 	});
 
 

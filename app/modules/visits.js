@@ -147,7 +147,16 @@ const importManyFromArray = (rawDataArr, hasHeader = true) => {
             return rawDataArr;
 
         } else {
-			throw new Error('Błędne nagłówki pliku z danymi. Sprawdź plik.');
+            let errMessage = 'Błędne nagłówki pliku z danymi. Sprawdź plik:';
+
+            // iteracja po wszystkich kolumnach, żeby uzupełnić komunikat, które kolumny nie są w odpowiedniej kolejności.
+            headersExpected.forEach((currHeader, i) => {
+                if(currHeader !== rawDataArr[0][i]){
+                    errMessage += `\r\nKolumna ${i} powinna być kolumną ${currHeader} - jest natomiast ${rawDataArr[0][i]}`;
+                }
+            });
+
+			throw new Error(errMessage);
 		}
 	}
     

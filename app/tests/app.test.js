@@ -67,11 +67,19 @@ describe('app', () => {
             });
         });
 
-        it('should throw 400 as test3.csv is empty, witout proper header', done => {
+        it('should throw 404 as test3.csv is empty, witout proper header', done => {
             request(app)
             .get('/read/test3.csv')
-            .expect(400)
-            .end(done);
+            .expect(404)
+            .end((err, res) => {
+                if(err){
+                    return err;
+                }
+
+                expect(res.body.error).toExist();
+                expect(res.body.error).toContain('Błędne nagłówki pliku z danymi.');
+                done();
+            });
         });
 
     });
@@ -110,11 +118,19 @@ describe('app', () => {
             });
         });
 
-        it('should return empty object as test3.csv is empty, witout proper header', done => {
+        it('should return 404 empty object as test3.csv is empty, witout proper header', done => {
             request(app)
             .get('/report/test3.csv')
-            .expect(400)
-            .end(done);
+            .expect(404)
+            .end((err, res) => {
+                if(err){
+                    return err;
+                }
+
+                expect(res.body.error).toExist();
+                expect(res.body.error).toContain('Błędne nagłówki pliku z danymi.');
+                done();
+            });
         });
 
         it('should import visits from file test1.csv and generate report', done => {
@@ -146,7 +162,6 @@ describe('app', () => {
             const filePathToSaveAfter = '../tests/anonymiseTestsData/test1_anonymised.csv';
 
         it('should anonymise pesels in given file and write it back to new csv', () => {
-            debugger;
             return importAnonymiseAndSave(filePathToAnonymise, filePathToSaveAfter)
                 .then(res => {
                     expect(res.message).toBe(`Plik ${filePathToAnonymise} został zanonimizowany i zapisany do ${filePathToSaveAfter}`);
@@ -206,7 +221,6 @@ describe('app', () => {
                     expect(visits.getAll().length).toEqual(visitsBeforeAnonymise.length);
 
                     // dla każdej wizyty wczytanej z pliku oryginalnego sprawdzić anonimizację pesel i identyczność pozostałych danych
-                    debugger;
                     visitsBeforeAnonymise = visitsBeforeAnonymise.map(currVisit => {
                         const t = _.omit(currVisit, ['pesel']);
                         t['pesel'] = anonymisePesel(currVisit['pesel']);
@@ -251,6 +265,40 @@ describe('app', () => {
                 .catch(err => {
                     expect(err.code).toBe('ENOENT');
                 })
+        });
+    });
+
+    describe('wrong column order in imported file', () => {
+        it('should throw 400 (for /read and /report) and message when ICD-10 1 and Nazwa not in right order', done => {
+            request(app)
+            .get('/report/wrongColOrd.csv')
+            .expect(404)
+            .end((err, res) => {
+                if(err){
+                    return err;
+                }
+
+                expect(res.body.error).toExist();
+                expect(res.body.error).toContain('Błędne nagłówki pliku z danymi.');
+                expect(res.body.error).toContain('Kolumna 3 powinna być kolumną Nazwa - jest natomiast ICD-10 1');
+                expect(res.body.error).toContain('Kolumna 4 powinna być kolumną ICD-10 1 - jest natomiast Nazwa');
+                // done();
+            });
+
+            request(app)
+            .get('/read/wrongColOrd.csv')
+            .expect(404)
+            .end((err, res) => {
+                if(err){
+                    return err;
+                }
+
+                expect(res.body.error).toExist();
+                expect(res.body.error).toContain('Błędne nagłówki pliku z danymi.');
+                expect(res.body.error).toContain('Kolumna 3 powinna być kolumną Nazwa - jest natomiast ICD-10 1');
+                expect(res.body.error).toContain('Kolumna 4 powinna być kolumną ICD-10 1 - jest natomiast Nazwa');
+                done();
+            });
         });
     });
 });
