@@ -146,10 +146,10 @@ describe('app', () => {
             const filePathToSaveAfter = '../tests/anonymiseTestsData/test1_anonymised.csv';
 
         it('should anonymise pesels in given file and write it back to new csv', () => {
-
+            debugger;
             return importAnonymiseAndSave(filePathToAnonymise, filePathToSaveAfter)
                 .then(res => {
-                    expect(res.message).toBe(`Plik ${filePathToSaveAfter} został zapisany`);
+                    expect(res.message).toBe(`Plik ${filePathToAnonymise} został zanonimizowany i zapisany do ${filePathToSaveAfter}`);
                     expect(res.fileSaved).toBe(filePathToSaveAfter);
             });
         });
@@ -159,7 +159,7 @@ describe('app', () => {
 
             return importAnonymiseAndSave(filePathToAnonymise)
                 .then(res => {
-                    expect(res.message).toBe(`Plik ../tests/anonymiseTestsData/test1_an.csv został zapisany`);
+                    expect(res.message).toBe(`Plik ${filePathToAnonymise} został zanonimizowany i zapisany do ../tests/anonymiseTestsData/test1_an.csv`);
                     expect(res.fileSaved).toBe('../tests/anonymiseTestsData/test1_an.csv');
             });
         });
@@ -187,7 +187,7 @@ describe('app', () => {
             // uruchomienie testowanej funkcji
             return importAnonymiseAndSave(filePathToAnonymise, filePathToSaveAfter)
                 .then(res => {
-                    expect(res.message).toBe(`Plik ${filePathToSaveAfter} został zapisany`);
+                    expect(res.message).toBe(`Plik ${filePathToAnonymise} został zanonimizowany i zapisany do ${filePathToSaveAfter}`);
                     expect(res.fileSaved).toBe(filePathToSaveAfter);
                     
                     return readFile(filePathToSaveAfter);
