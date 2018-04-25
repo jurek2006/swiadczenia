@@ -61,6 +61,7 @@ const readAnonymiseDefaultsPaths = (pathToStoringJSON) => {
 
 		return readFile(pathToStoringJSON)
 			.then(res => {
+			// jeśli udało się odczytać - wczytanie do defaultsToSave wartości odpowiednich pól
 				const read = JSON.parse(res);
 				
 				if(read.input){
@@ -82,11 +83,13 @@ const readAnonymiseDefaultsPaths = (pathToStoringJSON) => {
 					}
 				}
 				
-				return defaultsToSave;
 			})
 			.catch(err => {
-				
-				console.log(`Nie udało się wczytać pliku domyślnych ścieżek/nazw plików: \r\nr${err}\r\nDomyślne ścieżki ustawiono na niezdefiniowane`);
+			// jeśli nie udało się wczytać - wyświetlenie w konsoli błędu
+				console.log(`Nie udało się wczytać pliku domyślnych ścieżek/nazw plików: ${err.path}`);
+			}).then(res => {
+			// niezależnie, czy udało się wczytać wartości z pliku, czy nie - zwrócony zostaje obiekt defaultsToSave (gdy nie udało się odczytać - jego wartości są po prostu undefined)
+				return defaultsToSave;
 			});
 
 }
@@ -316,10 +319,25 @@ if(argvCommand === 'anonymise'){
 	// 	}).then(res => console.log(res))
 	// 	.catch(err => console.log(err));
 
+	let defaultsToSave;
+
 	readAnonymiseDefaultsPaths('../config/anonymise_defaults.json') //wczytuje domyślne ścieżki i nazwy plików zdefiniowane dla anonimizacji 
-	.then(defaultsToSave => {
-		console.log('Defaults wcześniejsze:', defaultsToSave);
+	.then(defaultsRed => {
+		defaultsToSave = defaultsRed;
 	}) //jeśli się powiodło - wyświetla je
+	.catch(err => console.log(err)) //przechwycenie błędów odczytania dotychczasowych domyślnych ścieżek
+	.then(res => { 
+
+		if(argv.path){
+			defaultsToSave[argv.type].defaultPath = argv.path;
+		}
+
+		if(argv.filename){
+			defaultsToSave[argv.type].defaultFilename = argv.filename;
+		}
+
+		return saveJSON(defaultsToSave, '../config/anonymise_defaults.json')
+	}).then(res => console.log(res))
 	.catch(err => console.log(err));
 		
 } else if (argvCommand === 'showDefault'){

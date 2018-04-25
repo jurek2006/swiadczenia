@@ -1,26 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const saveJSON = (objToSave, pathRelative, fileName) => {
+const saveJSON = (objToSave, pathToWrite) => {
 // funkcja zapisująca obiekt do pliku JSON
-// nazwę pliku można zawrzeć w pathRelative lub w filename
-    let pathToWrite;
 
-    if(fileName){
-        pathToWrite = path.join(__dirname, pathRelative, fileName);
-    } else {
-        pathToWrite = path.join(__dirname, pathRelative);
-    }
-
-    return new Promise((resolve, reject) => {
-        fs.writeFile(pathToWrite, JSON.stringify(objToSave), 
-            (err) => {
-                if (err) reject(err);
-            
-                resolve(`Plik JSON ${pathToWrite} został zapisany`);
-            }
-        ); 
-    });
+    return saveFile(JSON.stringify(objToSave), pathToWrite);
     
 }
 

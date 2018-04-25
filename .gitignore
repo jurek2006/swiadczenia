@@ -4,3 +4,4 @@ exports/*
 playground/
 
 app/config/hiddenConfig.js
+app/config/anonymise_defaults.json
