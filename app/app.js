@@ -43,6 +43,20 @@ const importAnonymiseAndSave = (pathToFileToAnonymise, pathToSaveAfter) => {
 	})
 }
 
+const dirGetContent = pathRelative => {
+// funkcja zwraca promisę, która pobiera zawartość zadanego folderu (zwraca tę zawartość jako tablicę)
+
+	return new Promise((resolve, reject) => {
+		const dirPath = path.join(__dirname, pathRelative);
+		fs.readdir(dirPath, (err, items) => {
+			if(err){
+				reject(err);
+			}
+			resolve(items)
+		})
+	});
+}
+
 
 const app = express();
 
@@ -97,6 +111,29 @@ app.get('/read/:filename', (req, res) => {
 			res.status(404).send({error: err.message});
 	}); 
 });
+
+// route GET /anonymise - robi przekierowanie do GET '/anonymise/:path' - czyli powoduje wyświetlenia zawartości domyślnego folderu (tutaj z ręki '../data/')
+app.get('/anonymise', (req, res) => {
+
+	res.redirect('/anonymise/' + encodeURIComponent('../data/'));
+
+})
+
+// route GET /anonymise/:path - wyświetla zawartość przekazanego w path folderu (ścieżka względna względem /app i enkodowana)
+app.get('/anonymise/:path', (req, res) => {
+	const givenPath = path.join(decodeURIComponent(req.params.path));
+
+	dirGetContent(givenPath).then(response => {
+		let dirList = `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/..')}">..</a></li>`;
+		response.forEach(item => {
+			dirList += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
+		});
+		dirList = `<h2>Zawartość folderu:</h2><ul>${dirList}</ul>`;
+		res.send('<h1>Anonymise</h1>' + dirList);
+		
+	}).catch(err => {res.send(err)});
+
+})
 
 
 if(!module.parent){
