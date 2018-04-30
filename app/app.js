@@ -44,19 +44,24 @@ const importAnonymiseAndSave = (pathToFileToAnonymise, pathToSaveAfter) => {
 }
 
 const dirGetContent = pathRelative => {
-// funkcja zwraca promisę, która pobiera zawartość zadanego folderu (zwraca tę zawartość jako tablicę)
+// funkcja zwraca promisę, która pobiera zawartość zadanego folderu
+// promisa (gdy zakończona sukcesem) zwraca obiekt zawierający tablice dirs (podfoldery) i files (pliki w folderze)
 
 	return new Promise((resolve, reject) => {
 		const dirPath = path.join(__dirname, pathRelative);
 		fs.readdir(dirPath, (err, items) => {
+		// wczytanie zawartości (elementów) folderu do items
 			if(err){
 				reject(err);
 			}
-			resolve(items)
+
+			// odfiltrowanie folderów i plików do osobnych tablic
+			const dirs = items.filter(item => fs.statSync(dirPath + '/' + item).isDirectory());
+			const files = items.filter(item => fs.statSync(dirPath + '/' + item).isFile());
+			resolve({dirs, files});
 		})
 	});
 }
-
 
 const app = express();
 
@@ -124,16 +129,49 @@ app.get('/anonymise/:path', (req, res) => {
 	const givenPath = path.join(decodeURIComponent(req.params.path));
 
 	dirGetContent(givenPath).then(response => {
-		let dirList = `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/..')}">..</a></li>`;
-		response.forEach(item => {
-			dirList += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
+		let htmlContent = '';
+
+		htmlContent += `<h2>Pliki:</h2>`;
+		response.files.forEach(item => {
+			htmlContent += `<li>${item} <a href="/info/${encodeURIComponent(givenPath + '/' + item)}">Info</a></li>`;
 		});
-		dirList = `<h2>Zawartość folderu:</h2><ul>${dirList}</ul>`;
-		res.send('<h1>Anonymise</h1>' + dirList);
+
+		htmlContent += `<h2>Podfoldery:</h2>`;
+		htmlContent += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/..')}">..</a></li>`;
+		response.dirs.forEach(item => {
+			htmlContent += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
+		});
+		res.send('<h1>Anonymise</h1>' + htmlContent);
 		
 	}).catch(err => {res.send(err)});
 
 })
+
+// TESTOWE //TYMCZASOWE
+// ścieżka przekazująca info o pliku/folderze (przede wszystkim, czy jest plikiem, czy folderem)
+app.get('/info/:path', (req, res) => {
+	const givenPath = path.join(decodeURIComponent(req.params.path));
+
+	fs.stat(givenPath, function(err, stats) {
+		console.log(path);
+		console.log();
+		console.log(stats);
+		console.log();
+	 
+		let isFileOrDirectory;
+		if (stats.isFile()) {
+			isFileOrDirectory = 'plikiem';
+			console.log('    file');
+		}
+		if (stats.isDirectory()) {
+			isFileOrDirectory = 'folderem';
+			console.log('    directory');
+		}
+
+		res.send(`<h1>Info</h1>${givenPath} jest ${isFileOrDirectory}`);
+	});
+
+});
 
 
 if(!module.parent){
