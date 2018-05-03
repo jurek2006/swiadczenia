@@ -43,9 +43,20 @@ const importAnonymiseAndSave = (pathToFileToAnonymise, pathToSaveAfter) => {
 	})
 }
 
-const dirGetContent = pathRelative => {
+const dirGetContent = (pathRelative, fileExtAccepted = []) => {
 // funkcja zwraca promisę, która pobiera zawartość zadanego folderu
 // promisa (gdy zakończona sukcesem) zwraca obiekt zawierający tablice dirs (podfoldery) i files (pliki w folderze)
+// tablica fileExtAccepted określa pliki z jakim rozszerzeniem są pobierana (jeśli nieprzekazana lub pusta to wszystkie)
+// akceptuje tablicę np. ['csv', 'ods'] lub ['.csv', '.ods']
+
+	// akceptowanie rozrzerzeń plików z kropką i bez kropki
+	const allowedExtensions = fileExtAccepted.map(currExt => {
+		if(currExt[0] === '.'){
+			return currExt;
+		} else {
+			return '.' + currExt;
+		}
+	})
 
 	return new Promise((resolve, reject) => {
 		const dirPath = path.join(__dirname, pathRelative);
@@ -57,8 +68,14 @@ const dirGetContent = pathRelative => {
 
 			// odfiltrowanie folderów i plików do osobnych tablic
 			const dirs = items.filter(item => fs.statSync(dirPath + '/' + item).isDirectory());
-			const files = items.filter(item => fs.statSync(dirPath + '/' + item).isFile());
-			resolve({dirs, files});
+			let files = items.filter(item => fs.statSync(dirPath + '/' + item).isFile());
+
+			// jeśli zdefiniowano akceptowane typy (rozszerzenia) plików, to wybranie tylko ich
+			if(allowedExtensions && allowedExtensions.length > 0){
+				files = files.filter(currFile => allowedExtensions.includes(path.extname(currFile))); //zostawia w tablicy files tylko pliki z rozszerzeniami, które są w fileExtAccepted
+			} 
+
+			resolve({dirs, files, path: dirPath, allowedExtensions});
 		})
 	});
 }
@@ -128,20 +145,26 @@ app.get('/anonymise', (req, res) => {
 app.get('/anonymise/:path', (req, res) => {
 	const givenPath = path.join(decodeURIComponent(req.params.path));
 
-	dirGetContent(givenPath).then(response => {
+	dirGetContent(givenPath, ['.csv']).then(response => {
 		let htmlContent = '';
 
-		htmlContent += `<h2>Pliki:</h2>`;
-		response.files.forEach(item => {
-			htmlContent += `<li>${item} <a href="/info/${encodeURIComponent(givenPath + '/' + item)}">Info</a></li>`;
-		});
+		htmlContent += `<h2>Pliki${response.allowedExtensions.length ? ' (' + response.allowedExtensions + ')' : ''}:</h2>`;
+		if(response.files.length > 0){
+			response.files.forEach(item => {
+				htmlContent += `<li>${item} <a href="/info/${encodeURIComponent(givenPath + '/' + item)}">Info</a></li>`;
+			});
+		} else {
+			htmlContent += `<li>Nie znaleziono plików ${response.allowedExtensions.length ? 'o rozszerzeniach ' + response.allowedExtensions : ''}</li>`;
+		}
 
 		htmlContent += `<h2>Podfoldery:</h2>`;
 		htmlContent += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/..')}">..</a></li>`;
 		response.dirs.forEach(item => {
 			htmlContent += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
 		});
-		res.send('<h1>Anonymise</h1>' + htmlContent);
+		res.send(`<h1>Anonymise</h1>
+					<p>Folder: ${response.path}</p>
+					${htmlContent}`);
 		
 	}).catch(err => {res.send(err)});
 
