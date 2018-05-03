@@ -14,6 +14,7 @@ const importAnonymiseAndSave = (pathToFileToAnonymise, pathToSaveAfter) => {
 	if(!pathToSaveAfter){
 		// jeśli niezdefiniowano ścieżki zapisu tworzy ją na podstawie ścieżki do odczytywanego pliku - dodając domyślny przyrostek
 		// np. '../tests/anonymiseTestsData/test1.csv' > '../tests/anonymiseTestsData/test1_an.csv'
+
 		const suffixDefault = '_an';
 		pathToSaveAfter = pathToFileToAnonymise.substring(0, pathToFileToAnonymise.lastIndexOf('.')).concat(suffixDefault, pathToFileToAnonymise.substring(pathToFileToAnonymise.lastIndexOf('.')))
 	}
@@ -33,7 +34,8 @@ const importAnonymiseAndSave = (pathToFileToAnonymise, pathToSaveAfter) => {
 			.then(res => {resolve(
 				{					
 					fileSaved: res.fileSaved, 
-					message: `Plik ${pathToFileToAnonymise} został zanonimizowany i zapisany do ${res.fileSaved}`
+					message: `Plik ${pathToFileToAnonymise} został zanonimizowany i zapisany do ${res.fileSaved}`,
+					absoluteFileSavedPath: res.absoluteFileSavedPath //ścieżka absolutna do zapisanego pliku
 				}
 			)})
 			.catch(err => {
@@ -145,57 +147,58 @@ app.get('/anonymise', (req, res) => {
 app.get('/anonymise/:path', (req, res) => {
 	const givenPath = path.join(decodeURIComponent(req.params.path));
 
-	dirGetContent(givenPath, ['.csv']).then(response => {
-		let htmlContent = '';
+	// const dirs = items.filter(item => fs.statSync(dirPath + '/' + item).isDirectory());
+	// let files = items.filter(item => fs.statSync(dirPath + '/' + item).isFile());
 
-		htmlContent += `<h2>Pliki${response.allowedExtensions.length ? ' (' + response.allowedExtensions + ')' : ''}:</h2>`;
-		if(response.files.length > 0){
-			response.files.forEach(item => {
-				htmlContent += `<li>${item} <a href="/info/${encodeURIComponent(givenPath + '/' + item)}">Info</a></li>`;
+	try{
+		if(fs.statSync(givenPath).isDirectory()){
+		// jeśli przekazano w path folder - umożliwia przechodzenie po folderach 
+
+			dirGetContent(givenPath, ['.csv']).then(response => {
+				let htmlContent = '';
+				
+				htmlContent += `<h2>Pliki${response.allowedExtensions.length ? ' (' + response.allowedExtensions + ')' : ''}:</h2>`;
+				if(response.files.length > 0){
+					response.files.forEach(item => {
+						htmlContent += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
+					});
+				} else {
+					htmlContent += `<li>Nie znaleziono plików ${response.allowedExtensions.length ? 'o rozszerzeniach ' + response.allowedExtensions : ''}</li>`;
+				}
+				
+				htmlContent += `<h2>Podfoldery:</h2>`;
+				htmlContent += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/..')}">..</a></li>`;
+				response.dirs.forEach(item => {
+					htmlContent += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
+				});
+				res.send(`<h1>Anonymise</h1>
+				<p>Folder: ${response.path}</p>
+				${htmlContent}`);
+				
+			}).catch(err => {res.send(err)});
+		} else if(fs.statSync(givenPath).isFile()){
+		// jeśli przekazano w path plik - anonimizacja do tej samej ścieżki
+
+			// DO POPRAWY - importAnonymiseAndSave używa saveFile, który zapisuje do ścieżki określonej względem folderu położenia utils.js, a ścieżka givenPath podana jest względem app
+			// dlatego użyte jest, aby działało '..' 
+			importAnonymiseAndSave(path.join('..', givenPath)).then(response => {
+				// jeśli udało się zanonimizować i zapisać plik
+				res.send(`<h1>Anonymise</h1>
+				<p>Plik<br><strong>${path.join(__dirname, givenPath)}</strong> został zapisany i zanonimizowany do pliku:<br><strong>${response.absoluteFileSavedPath}</strong></p>`);
+			}).catch(err => {
+				// nie udało się zanonimizować i zapisać plik
+				res.status(400).send(`<h1>Anonymise - błąd</h1>
+				<p>Błąd przy próbie anonimizacji pliku<br><strong>${path.join(__dirname, givenPath)}</strong></p>
+				<h3>Błąd:</h4> ${err}`);
 			});
-		} else {
-			htmlContent += `<li>Nie znaleziono plików ${response.allowedExtensions.length ? 'o rozszerzeniach ' + response.allowedExtensions : ''}</li>`;
 		}
-
-		htmlContent += `<h2>Podfoldery:</h2>`;
-		htmlContent += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/..')}">..</a></li>`;
-		response.dirs.forEach(item => {
-			htmlContent += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
-		});
-		res.send(`<h1>Anonymise</h1>
-					<p>Folder: ${response.path}</p>
-					${htmlContent}`);
-		
-	}).catch(err => {res.send(err)});
+	}catch(err){
+		// inny błąd - przede wszystkim - nie znaleziono pliku/folderu
+		res.status(404).send(`<h1>Anonymise - błąd</h1>
+			<h3>Błąd:</h4> ${err}`);
+	}
 
 })
-
-// TESTOWE //TYMCZASOWE
-// ścieżka przekazująca info o pliku/folderze (przede wszystkim, czy jest plikiem, czy folderem)
-app.get('/info/:path', (req, res) => {
-	const givenPath = path.join(decodeURIComponent(req.params.path));
-
-	fs.stat(givenPath, function(err, stats) {
-		console.log(path);
-		console.log();
-		console.log(stats);
-		console.log();
-	 
-		let isFileOrDirectory;
-		if (stats.isFile()) {
-			isFileOrDirectory = 'plikiem';
-			console.log('    file');
-		}
-		if (stats.isDirectory()) {
-			isFileOrDirectory = 'folderem';
-			console.log('    directory');
-		}
-
-		res.send(`<h1>Info</h1>${givenPath} jest ${isFileOrDirectory}`);
-	});
-
-});
-
 
 if(!module.parent){
 	app.listen(3000, () => {

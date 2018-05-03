@@ -26,7 +26,8 @@ const saveFile = (dataToWrite, pathToWrite) => {
 
             resolve({
                 message: `Plik ${pathToWrite} został zapisany`,
-                fileSaved: pathToWrite
+                fileSaved: pathToWrite, //przekazanie ścieżki względnej do pliku
+                absoluteFileSavedPath: path.join(__dirname, pathToWrite) //ścieżka względna do zapisanego pliku
             });
         });
     });
