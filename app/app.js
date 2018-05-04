@@ -45,42 +45,85 @@ const importAnonymiseAndSave = (pathToFileToAnonymise, pathToSaveAfter) => {
 	})
 }
 
-const dirGetContent = (pathRelative, fileExtAccepted = []) => {
-// funkcja zwraca promisę, która pobiera zawartość zadanego folderu
-// promisa (gdy zakończona sukcesem) zwraca obiekt zawierający tablice dirs (podfoldery) i files (pliki w folderze)
-// tablica fileExtAccepted określa pliki z jakim rozszerzeniem są pobierana (jeśli nieprzekazana lub pusta to wszystkie)
-// akceptuje tablicę np. ['csv', 'ods'] lub ['.csv', '.ods']
+const routeFileManager = (req, res, route, givenPath, allowedExtensions, actionForFiles) => {
+	// funkcja menedżera plików w określonej route - pozwala nawigować po drzewie folderów (zaczynając w givenPath) i wyświetlać określone w allowedExtensions typy plików (wszystkie, gdy nie określono żadnego)
+	// po kliknięciu w plik uruchamia dla niego akcję actionForFiles
 
-	// akceptowanie rozrzerzeń plików z kropką i bez kropki
-	const allowedExtensions = fileExtAccepted.map(currExt => {
-		if(currExt[0] === '.'){
-			return currExt;
-		} else {
-			return '.' + currExt;
-		}
-	})
-
-	return new Promise((resolve, reject) => {
-		const dirPath = path.join(__dirname, pathRelative);
-		fs.readdir(dirPath, (err, items) => {
-		// wczytanie zawartości (elementów) folderu do items
-			if(err){
-				reject(err);
+	const dirGetContent = (pathRelative, fileExtAccepted = []) => {
+	// funkcja zwraca promisę, która pobiera zawartość zadanego folderu
+	// promisa (gdy zakończona sukcesem) zwraca obiekt zawierający tablice dirs (podfoldery) i files (pliki w folderze)
+	// tablica fileExtAccepted określa pliki z jakim rozszerzeniem są pobierana (jeśli nieprzekazana lub pusta to wszystkie)
+	// akceptuje tablicę np. ['csv', 'ods'] lub ['.csv', '.ods']
+	
+		// akceptowanie rozrzerzeń plików z kropką i bez kropki
+		const allowedExtensions = fileExtAccepted.map(currExt => {
+			if(currExt[0] === '.'){
+				return currExt;
+			} else {
+				return '.' + currExt;
 			}
-
-			// odfiltrowanie folderów i plików do osobnych tablic
-			const dirs = items.filter(item => fs.statSync(dirPath + '/' + item).isDirectory());
-			let files = items.filter(item => fs.statSync(dirPath + '/' + item).isFile());
-
-			// jeśli zdefiniowano akceptowane typy (rozszerzenia) plików, to wybranie tylko ich
-			if(allowedExtensions && allowedExtensions.length > 0){
-				files = files.filter(currFile => allowedExtensions.includes(path.extname(currFile))); //zostawia w tablicy files tylko pliki z rozszerzeniami, które są w fileExtAccepted
-			} 
-
-			resolve({dirs, files, path: dirPath, allowedExtensions});
 		})
-	});
-}
+	
+		return new Promise((resolve, reject) => {
+			const dirPath = path.join(__dirname, pathRelative);
+			fs.readdir(dirPath, (err, items) => {
+			// wczytanie zawartości (elementów) folderu do items
+				if(err){
+					reject(err);
+				}
+	
+				// odfiltrowanie folderów i plików do osobnych tablic
+				const dirs = items.filter(item => fs.statSync(dirPath + '/' + item).isDirectory());
+				let files = items.filter(item => fs.statSync(dirPath + '/' + item).isFile());
+	
+				// jeśli zdefiniowano akceptowane typy (rozszerzenia) plików, to wybranie tylko ich
+				if(allowedExtensions && allowedExtensions.length > 0){
+					files = files.filter(currFile => allowedExtensions.includes(path.extname(currFile))); //zostawia w tablicy files tylko pliki z rozszerzeniami, które są w fileExtAccepted
+				} 
+	
+				resolve({dirs, files, path: dirPath, allowedExtensions});
+			})
+		});
+	}
+	
+		const globalPath = path.join(__dirname, givenPath);
+	
+		try{
+			if(fs.statSync(globalPath).isDirectory()){
+			// jeśli przekazano w path folder - umożliwia przechodzenie po folderach 
+	
+				dirGetContent(givenPath, ['.csv']).then(response => {
+					let htmlContent = '';
+					
+					htmlContent += `<h2>Pliki${response.allowedExtensions.length ? ' (' + response.allowedExtensions + ')' : ''}:</h2>`;
+					if(response.files.length > 0){
+						response.files.forEach(item => {
+							htmlContent += `<li><a href="${route}${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
+						});
+					} else {
+						htmlContent += `<li>Nie znaleziono plików ${response.allowedExtensions.length ? 'o rozszerzeniach ' + response.allowedExtensions : ''}</li>`;
+					}
+					
+					htmlContent += `<h2>Podfoldery:</h2>`;
+					htmlContent += `<li><a href="${route}${encodeURIComponent(givenPath + '/..')}">..</a></li>`;
+					response.dirs.forEach(item => {
+						htmlContent += `<li><a href="${route}${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
+					});
+					res.send(`<h1>FileManager</h1>
+					<p>Folder: ${response.path}</p>
+					${htmlContent}`);
+					
+				}).catch(err => {res.send(err)});
+			} else if(fs.statSync(globalPath).isFile()){
+			// jeśli przekazano w path plik wykonanie funkcji actionForFiles, której przekazywany jest res route i ścieżka do pliku givenPath
+				actionForFiles(res, givenPath);
+			}
+		}catch(err){
+			// inny błąd - przede wszystkim - nie znaleziono pliku/folderu
+			res.status(404).send(`<h1>FileManager: - błąd</h1>
+				<h3>Błąd:</h4> ${err}`);
+		}
+	}
 
 const app = express();
 
@@ -155,41 +198,17 @@ app.get('/anonymise', (req, res) => {
 
 })
 
+
 // route GET /anonymise/:path - wyświetla zawartość przekazanego w path folderu (ścieżka względna względem /app i enkodowana)
+// dzięki routeFileManager możliwe jest nawigowanie po drzewie folderów
+// jeśli przekazano plik .csv dokonywane jest anonimizowanie danych z pliku i zapisanie zanonimizowanego z domyślną nazwą *_an.csv w tym samym folderze
 app.get('/anonymise/:path', (req, res) => {
 	const givenPath = path.join(decodeURIComponent(req.params.path));
 	const globalPath = path.join(__dirname, givenPath);
 
-	try{
-		if(fs.statSync(globalPath).isDirectory()){
-		// jeśli przekazano w path folder - umożliwia przechodzenie po folderach 
-
-			dirGetContent(givenPath, ['.csv']).then(response => {
-				let htmlContent = '';
-				
-				htmlContent += `<h2>Pliki${response.allowedExtensions.length ? ' (' + response.allowedExtensions + ')' : ''}:</h2>`;
-				if(response.files.length > 0){
-					response.files.forEach(item => {
-						htmlContent += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
-					});
-				} else {
-					htmlContent += `<li>Nie znaleziono plików ${response.allowedExtensions.length ? 'o rozszerzeniach ' + response.allowedExtensions : ''}</li>`;
-				}
-				
-				htmlContent += `<h2>Podfoldery:</h2>`;
-				htmlContent += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/..')}">..</a></li>`;
-				response.dirs.forEach(item => {
-					htmlContent += `<li><a href="/anonymise/${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
-				});
-				res.send(`<h1>Anonymise</h1>
-				<p>Folder: ${response.path}</p>
-				${htmlContent}`);
-				
-			}).catch(err => {res.send(err)});
-		} else if(fs.statSync(globalPath).isFile()){
-		// jeśli przekazano w path plik - anonimizacja do tej samej ścieżki
-
-			// DO POPRAWY - importAnonymiseAndSave używa saveFile, który zapisuje do ścieżki określonej względem folderu położenia utils.js, a ścieżka givenPath podana jest względem app
+	// routeFileManager pozwala nawigować w drzewie folderów i wybrać plik csv do anonimizacji
+	routeFileManager(req, res, '/anonymise/', givenPath, ['.csv'], (res, givenPath) => {
+		// DO POPRAWY - importAnonymiseAndSave używa saveFile, który zapisuje do ścieżki określonej względem folderu położenia utils.js, a ścieżka givenPath podana jest względem app
 			// dlatego użyte jest, aby działało '..' 
 			importAnonymiseAndSave(path.join('..', givenPath)).then(response => {
 				// jeśli udało się zanonimizować i zapisać plik
@@ -201,12 +220,7 @@ app.get('/anonymise/:path', (req, res) => {
 				<p>Błąd przy próbie anonimizacji pliku<br><strong>${path.join(__dirname, givenPath)}</strong></p>
 				<h3>Błąd:</h4> ${err}`);
 			});
-		}
-	}catch(err){
-		// inny błąd - przede wszystkim - nie znaleziono pliku/folderu
-		res.status(404).send(`<h1>Anonymise - błąd</h1>
-			<h3>Błąd:</h4> ${err}`);
-	}
+	});
 
 })
 
