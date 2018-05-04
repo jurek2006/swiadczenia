@@ -159,9 +159,6 @@ app.get('/anonymise', (req, res) => {
 app.get('/anonymise/:path', (req, res) => {
 	const givenPath = path.join(decodeURIComponent(req.params.path));
 
-	// const dirs = items.filter(item => fs.statSync(dirPath + '/' + item).isDirectory());
-	// let files = items.filter(item => fs.statSync(dirPath + '/' + item).isFile());
-
 	try{
 		if(fs.statSync(givenPath).isDirectory()){
 		// jeśli przekazano w path folder - umożliwia przechodzenie po folderach 
