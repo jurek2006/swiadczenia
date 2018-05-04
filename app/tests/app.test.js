@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const fs = require('fs');
 const expect = require('expect');
 const request = require('supertest');
 
@@ -154,6 +155,37 @@ describe('app', () => {
                     done();
 
             });
+        });
+    });
+
+    describe('GET /anonymise/:path', () => {
+
+        it('should anonymise csv with visits and save to anonymised csv file', done => {
+            //sprawdzenie, czy plik, który ma być zapisany w wyniku testu istnieje przed jego uruchomieniem - jeśli tak, to zostaje usunięty
+            if(fs.existsSync('..\\swiadczenia\\app\\tests\\pathAnonymiseTestData\\test1_an.csv')){
+                fs.unlinkSync('..\\swiadczenia\\app\\tests\\pathAnonymiseTestData\\test1_an.csv');
+            } 
+
+            request(app)
+            .get('/anonymise/..%5Capp%5Ctests%5CpathAnonymiseTestData%2Ftest1.csv')
+            .expect(200)
+            .end((err, res) => {
+                if(err){
+                    return err;
+                }
+
+                // sprawdzenie, czy plik po anonimizacji został zapisany (utworzony)
+                expect(fs.existsSync('..\\swiadczenia\\app\\tests\\pathAnonymiseTestData\\test1_an.csv')).toBeTruthy();
+                done();
+
+            });
+        });
+
+        it('should get 404 as file to anonymise does not exist', done => {
+            request(app)
+            .get('/anonymise/..%5Capp%5Ctests%5CpathAnonymiseTestData%2Fnot_existing.csv')
+            .expect(404)
+            .end(done);
         });
     });
 
