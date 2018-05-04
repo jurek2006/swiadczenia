@@ -158,9 +158,10 @@ app.get('/anonymise', (req, res) => {
 // route GET /anonymise/:path - wyświetla zawartość przekazanego w path folderu (ścieżka względna względem /app i enkodowana)
 app.get('/anonymise/:path', (req, res) => {
 	const givenPath = path.join(decodeURIComponent(req.params.path));
+	const globalPath = path.join(__dirname, givenPath);
 
 	try{
-		if(fs.statSync(givenPath).isDirectory()){
+		if(fs.statSync(globalPath).isDirectory()){
 		// jeśli przekazano w path folder - umożliwia przechodzenie po folderach 
 
 			dirGetContent(givenPath, ['.csv']).then(response => {
@@ -185,7 +186,7 @@ app.get('/anonymise/:path', (req, res) => {
 				${htmlContent}`);
 				
 			}).catch(err => {res.send(err)});
-		} else if(fs.statSync(givenPath).isFile()){
+		} else if(fs.statSync(globalPath).isFile()){
 		// jeśli przekazano w path plik - anonimizacja do tej samej ścieżki
 
 			// DO POPRAWY - importAnonymiseAndSave używa saveFile, który zapisuje do ścieżki określonej względem folderu położenia utils.js, a ścieżka givenPath podana jest względem app
