@@ -89,6 +89,18 @@ const app = express();
 // 	return visitsArr.filter(visit => visit.icd10.includes(icd10toFind) );
 // }
 
+// route GET / - strona główna z odnośnikami do innych funkcjonalności
+app.get('/', (req, res) => {
+	res.send(
+		`<h1>Świadczenia App</h1>
+		<ul>
+			<li><a href="/anonymise/">Anonimizuj pliki csv z danymi wizyt</a></li>
+			<li><a href="/report/">Wygeneruj raport z danych wizyt</a></li>
+		</ul>
+		`
+	);
+});
+
 // route GET /report/:filename' - importuje wizyty z pliku :filename i zwraca raport
 app.get('/report/:filename', (req, res) => {
 	const filename = req.params.filename;
