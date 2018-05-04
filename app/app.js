@@ -116,7 +116,12 @@ const routeFileManager = (req, res, route, givenPath, allowedExtensions, actionF
 				}).catch(err => {res.send(err)});
 			} else if(fs.statSync(globalPath).isFile()){
 			// jeśli przekazano w path plik wykonanie funkcji actionForFiles, której przekazywany jest res route i ścieżka do pliku givenPath
-				actionForFiles(res, givenPath);
+				if(actionForFiles){
+					// jeśli zdefiniowano callback actionForFiles
+					actionForFiles(res, givenPath);
+				} else {
+					res.send(`Plik ${globalPath}. Nie zdefiniowano callbacku actionForFiles`);
+				}
 			}
 		}catch(err){
 			// inny błąd - przede wszystkim - nie znaleziono pliku/folderu
@@ -138,34 +143,77 @@ app.get('/', (req, res) => {
 		`<h1>Świadczenia App</h1>
 		<ul>
 			<li><a href="/anonymise/">Anonimizuj pliki csv z danymi wizyt</a></li>
-			<li><a href="/report/">Wygeneruj raport z danych wizyt</a></li>
+			<li><a href="/report/">Wygeneruj raport z danych wizytX</a></li>
 		</ul>
 		`
 	);
 });
 
+// TYMCZASOWE - DO USUNIĘCIA
 // route GET /report/:filename' - importuje wizyty z pliku :filename i zwraca raport
-app.get('/report/:filename', (req, res) => {
-	const filename = req.params.filename;
+// app.get('/report/:filename', (req, res) => {
+// 	const filename = req.params.filename;
 	
-	visits.removeAll();
-	readFile('../../data/' + filename)
-		.then(dataFromFile => {
+// 	visits.removeAll();
+// 	readFile('../../data/' + filename)
+// 		.then(dataFromFile => {
 			
-			const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
-			const imported = visits.importManyFromArray(dataRawArr);
+// 			const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
+// 			const imported = visits.importManyFromArray(dataRawArr);
 
-			visits.findMultipleVisitsOfDay();
-			const report = visits.generateReportObj();
+// 			visits.findMultipleVisitsOfDay();
+// 			const report = visits.generateReportObj();
 
-			res.send({
-				report
-			});
+// 			res.send({
+// 				report
+// 			});
 			
-		}).catch(err => {
-				console.log(err.message);
-				res.status(404).send({error: err.message});
-		}); 
+// 		}).catch(err => {
+// 				console.log(err.message);
+// 				res.status(404).send({error: err.message});
+// 		}); 
+// });
+
+// route GET /report - robi przekierowanie do GET '/report/:path' - czyli powoduje wyświetlenia zawartości domyślnego folderu (tutaj z ręki '../data/')
+app.get('/report', (req, res) => {
+
+	res.redirect('/report/' + encodeURIComponent('../data/'));
+
+});
+
+// route GET /report/:path - wyświetla zawartość przekazanego w path folderu (ścieżka względna względem /app i enkodowana)
+// dzięki routeFileManager możliwe jest nawigowanie po drzewie folderów
+// jeśli przekazano plik .csv generuje i zwraca raport z wizyt w formie JSON
+app.get('/report/:path', (req, res) => {
+	const givenPath = path.join(decodeURIComponent(req.params.path));
+	const globalPath = path.join(__dirname, givenPath);
+
+	// routeFileManager pozwala nawigować w drzewie folderów i wybrać plik csv do anonimizacji
+	routeFileManager(req, res, '/report/', givenPath, ['.csv'], (res, givenPath) => {
+		// res.send(`Callback dla pliku ${givenPath}`);
+
+			visits.removeAll();
+			// DO POPRAWY - readFile używa ścieżki określonej względem folderu położenia utils.js, a ścieżka givenPath podana jest względem app
+			// dlatego użyte jest, aby działało '..' 
+			readFile(path.join('..', givenPath))
+			.then(dataFromFile => {
+				
+				const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
+				const imported = visits.importManyFromArray(dataRawArr);
+
+				visits.findMultipleVisitsOfDay();
+				const report = visits.generateReportObj();
+
+				res.send({
+					report
+				});
+				
+			}).catch(err => {
+					console.log(err.message);
+					res.status(404).send({error: err.message});
+			}); 
+	});
+	
 });
 
 // route GET /read/:filename' - importuje wizyty z pliku :filename i zwraca je w odpowiedzi
@@ -196,8 +244,7 @@ app.get('/anonymise', (req, res) => {
 
 	res.redirect('/anonymise/' + encodeURIComponent('../data/'));
 
-})
-
+});
 
 // route GET /anonymise/:path - wyświetla zawartość przekazanego w path folderu (ścieżka względna względem /app i enkodowana)
 // dzięki routeFileManager możliwe jest nawigowanie po drzewie folderów
@@ -222,7 +269,7 @@ app.get('/anonymise/:path', (req, res) => {
 			});
 	});
 
-})
+});
 
 if(!module.parent){
 	app.listen(3000, () => {
