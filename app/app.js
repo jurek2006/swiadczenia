@@ -45,9 +45,10 @@ const importAnonymiseAndSave = (pathToFileToAnonymise, pathToSaveAfter) => {
 	})
 }
 
-const routeFileManager = (req, res, route, givenPath, allowedExtensions, actionForFiles) => {
+const routeFileManager = (req, res, route, givenPath, allowedExtensions, actionForFiles, contentHtml) => {
 	// funkcja menedżera plików w określonej route - pozwala nawigować po drzewie folderów (zaczynając w givenPath) i wyświetlać określone w allowedExtensions typy plików (wszystkie, gdy nie określono żadnego)
 	// po kliknięciu w plik uruchamia dla niego akcję actionForFiles
+	// contentHtml to html wyświetlany na górze strony w zadanej route (jeśli nie zdefiniowany to standardowy nagłówek FileManager)
 
 	const dirGetContent = (pathRelative, fileExtAccepted = []) => {
 	// funkcja zwraca promisę, która pobiera zawartość zadanego folderu
@@ -86,48 +87,57 @@ const routeFileManager = (req, res, route, givenPath, allowedExtensions, actionF
 		});
 	}
 	
-		const globalPath = path.join(__dirname, givenPath);
-	
-		try{
-			if(fs.statSync(globalPath).isDirectory()){
-			// jeśli przekazano w path folder - umożliwia przechodzenie po folderach 
-	
-				dirGetContent(givenPath, ['.csv']).then(response => {
-					let htmlContent = '';
-					
-					htmlContent += `<h2>Pliki${response.allowedExtensions.length ? ' (' + response.allowedExtensions + ')' : ''}:</h2>`;
-					if(response.files.length > 0){
-						response.files.forEach(item => {
-							htmlContent += `<li><a href="${route}${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
-						});
-					} else {
-						htmlContent += `<li>Nie znaleziono plików ${response.allowedExtensions.length ? 'o rozszerzeniach ' + response.allowedExtensions : ''}</li>`;
-					}
-					
-					htmlContent += `<h2>Podfoldery:</h2>`;
-					htmlContent += `<li><a href="${route}${encodeURIComponent(givenPath + '/..')}">..</a></li>`;
-					response.dirs.forEach(item => {
+	const globalPath = path.join(__dirname, givenPath);
+
+	try{
+		if(fs.statSync(globalPath).isDirectory()){
+		// jeśli przekazano w path folder - umożliwia przechodzenie po folderach i wybranie z nich pliku o zadanym w dirGetContent rozszerzeniu
+
+			dirGetContent(givenPath, ['.csv']).then(response => {
+				let htmlContent = '';
+
+				// podfoldery w zadanym folderze
+				htmlContent += `<h2>Podfoldery:</h2>`;
+				htmlContent += `<li><a href="${route}${encodeURIComponent(givenPath + '/..')}">..</a></li>`;
+				response.dirs.forEach(item => {
+					htmlContent += `<li><a href="${route}${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
+				});
+				
+				// pliki w zadanym folderze
+				htmlContent += `<h2>Pliki${response.allowedExtensions.length ? ' (' + response.allowedExtensions + ')' : ''}:</h2>`;
+				if(response.files.length > 0){
+					response.files.forEach(item => {
 						htmlContent += `<li><a href="${route}${encodeURIComponent(givenPath + '/' + item)}">${item}</a></li>`;
 					});
-					res.send(`<h1>FileManager</h1>
-					<p>Folder: ${response.path}</p>
-					${htmlContent}`);
-					
-				}).catch(err => {res.send(err)});
-			} else if(fs.statSync(globalPath).isFile()){
-			// jeśli przekazano w path plik wykonanie funkcji actionForFiles, której przekazywany jest res route i ścieżka do pliku givenPath
-				if(actionForFiles){
-					// jeśli zdefiniowano callback actionForFiles
-					actionForFiles(res, givenPath);
 				} else {
-					res.send(`Plik ${globalPath}. Nie zdefiniowano callbacku actionForFiles`);
+					htmlContent += `<li>Nie znaleziono plików ${response.allowedExtensions.length ? 'o rozszerzeniach ' + response.allowedExtensions : ''}</li>`;
 				}
+				
+				// standardowy html wstawiany do strony file managera - jeśli zdefiniowano contentHtml to jest nim zastępowany
+				let inputHtml = '<h1>FileManager</h1>';
+				if(contentHtml){
+					inputHtml = contentHtml;
+				}
+				
+				res.send(`${inputHtml}
+				<p>Folder: ${response.path}</p>
+				${htmlContent}`);
+				
+			}).catch(err => {res.send(err)});
+		} else if(fs.statSync(globalPath).isFile()){
+		// jeśli przekazano w path plik wykonanie funkcji actionForFiles, której przekazywany jest res route i ścieżka do pliku givenPath
+			if(actionForFiles){
+				// jeśli zdefiniowano callback actionForFiles
+				actionForFiles(res, givenPath);
+			} else {
+				res.send(`Plik ${globalPath}. Nie zdefiniowano callbacku actionForFiles`);
 			}
-		}catch(err){
-			// inny błąd - przede wszystkim - nie znaleziono pliku/folderu
-			res.status(404).send(`<h1>FileManager: - błąd</h1>
-				<h3>Błąd:</h4> ${err}`);
 		}
+	}catch(err){
+		// inny błąd - przede wszystkim - nie znaleziono pliku/folderu
+		res.status(404).send(`<h1>FileManager: - błąd</h1>
+			<h3>Błąd:</h4> ${err}`);
+	}
 }
 
 const app = express();
@@ -187,7 +197,10 @@ app.get('/report/:path', (req, res) => {
 					console.log(err.message);
 					res.status(404).send({error: err.message});
 			}); 
-	});
+	}, 
+	`<h1>Generuj raport</h1>
+		<p>Wybierz plik z danymi wizyt .csv do wygenerowania raportu.</p>
+	`);
 	
 });
 
@@ -238,11 +251,14 @@ app.get('/anonymise/:path', (req, res) => {
 				<p>Plik<br><strong>${path.join(__dirname, givenPath)}</strong> został zapisany i zanonimizowany do pliku:<br><strong>${response.absoluteFileSavedPath}</strong></p>`);
 			}).catch(err => {
 				// nie udało się zanonimizować i zapisać plik
-				res.status(400).send(`<h1>Anonymise - błąd</h1>
+				res.status(400).send(`<h1>Anonimizacja - błąd</h1>
 				<p>Błąd przy próbie anonimizacji pliku<br><strong>${path.join(__dirname, givenPath)}</strong></p>
 				<h3>Błąd:</h4> ${err}`);
 			});
-	});
+	}, 
+	`<h1>Anonimizuj</h1>
+	<p>Wybierz plik z danymi wizyt .csv do zanonimizowania.</p>`
+	);
 
 });
 
