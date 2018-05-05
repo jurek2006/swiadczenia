@@ -1,9 +1,7 @@
 const _ = require('lodash')
 const fs = require('fs');
 const path = require('path');
-const bcrypt = require('bcrypt');
 const express = require('express');
-const yargs = require('yargs');
 
 const visits = require('../app/modules/visits'); //moduł do przechowywania danych wizyt
 const {readFile, saveFile, saveJSON, splitDataToArr} = require('../app/modules/utils');
