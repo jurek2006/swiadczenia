@@ -128,7 +128,7 @@ const routeFileManager = (req, res, route, givenPath, allowedExtensions, actionF
 			res.status(404).send(`<h1>FileManager: - błąd</h1>
 				<h3>Błąd:</h4> ${err}`);
 		}
-	}
+}
 
 const app = express();
 
@@ -143,36 +143,11 @@ app.get('/', (req, res) => {
 		`<h1>Świadczenia App</h1>
 		<ul>
 			<li><a href="/anonymise/">Anonimizuj pliki csv z danymi wizyt</a></li>
-			<li><a href="/report/">Wygeneruj raport z danych wizytX</a></li>
+			<li><a href="/report/">Wygeneruj raport z danych wizyt</a></li>
 		</ul>
 		`
 	);
 });
-
-// TYMCZASOWE - DO USUNIĘCIA
-// route GET /report/:filename' - importuje wizyty z pliku :filename i zwraca raport
-// app.get('/report/:filename', (req, res) => {
-// 	const filename = req.params.filename;
-	
-// 	visits.removeAll();
-// 	readFile('../../data/' + filename)
-// 		.then(dataFromFile => {
-			
-// 			const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
-// 			const imported = visits.importManyFromArray(dataRawArr);
-
-// 			visits.findMultipleVisitsOfDay();
-// 			const report = visits.generateReportObj();
-
-// 			res.send({
-// 				report
-// 			});
-			
-// 		}).catch(err => {
-// 				console.log(err.message);
-// 				res.status(404).send({error: err.message});
-// 		}); 
-// });
 
 // route GET /report - robi przekierowanie do GET '/report/:path' - czyli powoduje wyświetlenia zawartości domyślnego folderu (tutaj z ręki '../data/')
 app.get('/report', (req, res) => {
@@ -217,27 +192,27 @@ app.get('/report/:path', (req, res) => {
 });
 
 // route GET /read/:filename' - importuje wizyty z pliku :filename i zwraca je w odpowiedzi
-app.get('/read/:filename', (req, res) => {
-	const filename = req.params.filename;
+// app.get('/read/:filename', (req, res) => {
+// 	const filename = req.params.filename;
 	
-	visits.removeAll();
-	readFile('../../data/' + filename)
-		.then(dataFromFile => {
+// 	visits.removeAll();
+// 	readFile('../../data/' + filename)
+// 		.then(dataFromFile => {
 			
-			const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
-			const imported = visits.importManyFromArray(dataRawArr);
+// 			const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
+// 			const imported = visits.importManyFromArray(dataRawArr);
 
-			res.send({
-				visits: visits.getAll(),
-				dataWithWarnings: visits.getData.withWarnings(),
-				dataWithErrors: visits.getData.withErrors(),
-			});
+// 			res.send({
+// 				visits: visits.getAll(),
+// 				dataWithWarnings: visits.getData.withWarnings(),
+// 				dataWithErrors: visits.getData.withErrors(),
+// 			});
 			
-		}).catch(err => {
-			console.log(err.message);
-			res.status(404).send({error: err.message});
-	}); 
-});
+// 		}).catch(err => {
+// 			console.log(err.message);
+// 			res.status(404).send({error: err.message});
+// 	}); 
+// });
 
 // route GET /anonymise - robi przekierowanie do GET '/anonymise/:path' - czyli powoduje wyświetlenia zawartości domyślnego folderu (tutaj z ręki '../data/')
 app.get('/anonymise', (req, res) => {

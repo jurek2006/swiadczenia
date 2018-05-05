@@ -1,0 +1,19 @@
+Data	Kod MZ	Kod NFZ	Nazwa	ICD-10 1	ICD-10 2	ICD-10 3	ICD-10 4	ICD-9 1	ICD-9 2	ICD-9 3	ICD-9 4	ICD-9 5	ICD-9 6	ICD-9 7	ICD-9 8	ICD-9 9	ICD-9 10	Pacjent	Pesel	Personel	Numer kuponu RUM
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	J06.8				89.00										SKOWRON JERZY	84101711210	NOWAK BEATA	
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	S83				89.00										SKOWRON JERZY	84101711210	NOWAK BEATA	
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	J00				89.00										SKOWRON JERZY	84101711210	NOWAK BEATA	
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	Z04				89.00										SKOWRON JERZY	84101711213	NOWAK BEATA	
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	Z76.0	I10	I50	K29	89.00										SKOWRON JERZY	84101711213	ZAJĄCZKOWSKA-MATUNIN LEOKADIA	
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	I50	I10			89.00										SKOWRON JERZY	84101711213	ZAJĄCZKOWSKA-MATUNIN LEOKADIA	
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	R14	I10			89.00										SKOWRON JERZY	84101711215	WILGUCKA KAMILA	
+2018-03-01 00:00	8.04.2018	5.01.00.0000122	porada lekarska udzielona w domu pacjenta	J06	G30			89.00										SKOWRON JERZY	84101711217	RAHMAN IRENA	
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	G62	M10	I10	E11	89.00										SKOWRON JERZY	84101711215	CZEKIEL RAFAŁ	
+2018-03-01 00:00	7.11.2018	100204	świadczenie profilaktyczne					89.05										SKOWRON JERZY	84101711219	HOSNER-JEKA ALINA	
+2018-03-01 00:00	7.11.2018	100205	świadczenie diagnostyczne					89.05										SKOWRON JERZY	84101711220	HOSNER-JEKA ALINA	
+2018-03-01 00:00	7.11.2018	100207	świadczenie lecznicze					89.05										SKOWRON JERZY	84101711221	HOSNER-JEKA ALINA	
+	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	J06.8				89.00										SKOWRON JERZY		NOWAK BEATA	
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	S83				89.00										SKOWRON JERZY		NOWAK BEATA	
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń					89.00										SKOWRON JERZY	84101711210	NOWAK BEATA	
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	Z0				89.00										SKOWRON JERZY	84101711213	NOWAK BEATA	
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	Z76.0	I10	I50	K2	89.00										SKOWRON JERZY	84101711213	ZAJĄCZKOWSKA-MATUNIN LEOKADIA	
+2018-03-01 00:00	2.04.2018	5.01.00.0000121	porada lekarska udzielona w miejscu udzielania świadczeń	I50	I1			89.00										SKOWRON JERZY	84101711213	ZAJĄCZKOWSKA-MATUNIN LEOKADIA	
