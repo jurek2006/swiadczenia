@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const {isIcd10NotRequired, isPatronage, nfzCodeIsAllowed, nfzCodeIsExported} = require('../config/visitsConfig');
-const {saveJSON, deepCopy} = require('../modules/utils');
+const {saveJSON, deepCopy, birthDateFromPesel} = require('../modules/utils');
 
 class Visit{
     constructor(date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastName, staff, visitName){
@@ -54,6 +54,15 @@ class Visit{
             return output;
         }
     };
+
+    // TYMCZASOWE
+    getPatientAge(){
+        this.patientAge = 100;
+    }
+
+    dateOfBirth(){
+        this.dateOfBirth = `${birthDateFromPesel(this.pesel).getFullYear()}-${birthDateFromPesel(this.pesel).getMonth()}-${birthDateFromPesel(this.pesel).getDate()}`;
+    }
 }
 
 const visits = [];
@@ -282,6 +291,12 @@ const findMultipleVisitsOfDay = () => {
     return deepCopy(multipleVisitsOfDayObj);
 }
 
+const findIcd10inVisits = (icd10toFind, visitsArr) => {
+// zwraca wszystkie wizyty, które mają zadany icd10 (np. Z10)
+	
+	return visitsArr.filter(visit => visit.icd10.includes(icd10toFind) );
+}
+
 const generateReportObj = () => {
 // generuje raport z wizyt jako obiekt
     const reportObj = {};
@@ -308,6 +323,13 @@ const generateReportObj = () => {
             }
         }
     }
+
+    // raport wizyt posiadających icd10 Z10
+    const z10 = findIcd10inVisits('Z10', visits).map(currVisit => {
+        currVisit.dateOfBirth();
+        return currVisit;
+    });
+    reportObj.z10 = z10;
 
     return reportObj;
 }

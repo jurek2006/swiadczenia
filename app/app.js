@@ -140,11 +140,6 @@ const routeFileManager = (req, res, route, givenPath, allowedExtensions, actionF
 
 const app = express();
 
-// const findIcd10inVisits = (icd10toFind, visitsArr) => {
-	
-// 	return visitsArr.filter(visit => visit.icd10.includes(icd10toFind) );
-// }
-
 // route GET / - strona główna z odnośnikami do innych funkcjonalności
 app.get('/', (req, res) => {
 	res.send(
@@ -201,29 +196,6 @@ app.get('/report/:path', (req, res) => {
 	`);
 	
 });
-
-// route GET /read/:filename' - importuje wizyty z pliku :filename i zwraca je w odpowiedzi
-// app.get('/read/:filename', (req, res) => {
-// 	const filename = req.params.filename;
-	
-// 	visits.removeAll();
-// 	readFile('../../data/' + filename)
-// 		.then(dataFromFile => {
-			
-// 			const dataRawArr =  splitDataToArr(dataFromFile); //tablica danych wizyty - rozdzielona tylko na tablicę dwuwymiarową
-// 			const imported = visits.importManyFromArray(dataRawArr);
-
-// 			res.send({
-// 				visits: visits.getAll(),
-// 				dataWithWarnings: visits.getData.withWarnings(),
-// 				dataWithErrors: visits.getData.withErrors(),
-// 			});
-			
-// 		}).catch(err => {
-// 			console.log(err.message);
-// 			res.status(404).send({error: err.message});
-// 	}); 
-// });
 
 // route GET /anonymise - robi przekierowanie do GET '/anonymise/:path' - czyli powoduje wyświetlenia zawartości domyślnego folderu (tutaj z ręki '../data/')
 app.get('/anonymise', (req, res) => {
