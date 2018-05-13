@@ -91,7 +91,7 @@ const ageFullYearsInDay = (dayStr, pesel) => {
     let fullYears = dayDate.getFullYear() - birthDate.getFullYear();
 
     // sprawdzenie, czy osoba już ukończyła wyliczoną powyżej ilośc lat
-    if(dayDate.getTime() < checkDate.getTime()){
+    if(dayDate.getTime() < birthDate.getTime()){
     // jeśli data wizyty jest wcześniejsza niż data ukończenia wieku fullYears to odejmuje od fullYears 1
         fullYears -= 1;
     }

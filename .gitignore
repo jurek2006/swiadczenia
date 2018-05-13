@@ -7,3 +7,4 @@ app/config/hiddenConfig.js
 app/config/anonymise_defaults.json
 app/tests/anonymiseTestsData/test1_an.csv 
 app/tests/pathAnonymiseTestData/test1_an.csv
+app/npm-debug.log

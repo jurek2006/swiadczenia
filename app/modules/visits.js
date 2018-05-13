@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const {isIcd10NotRequired, isPatronage, nfzCodeIsAllowed, nfzCodeIsExported} = require('../config/visitsConfig');
-const {saveJSON, deepCopy, birthDateFromPesel} = require('../modules/utils');
+const {saveJSON, deepCopy, birthDateFromPesel, ageFullYearsInDay} = require('../modules/utils');
 
 class Visit{
     constructor(date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastName, staff, visitName){
@@ -55,13 +55,9 @@ class Visit{
         }
     };
 
-    // TYMCZASOWE
-    getPatientAge(){
-        this.patientAge = 100;
-    }
-
-    dateOfBirth(){
-        this.dateOfBirth = `${birthDateFromPesel(this.pesel).getFullYear()}-${birthDateFromPesel(this.pesel).getMonth()}-${birthDateFromPesel(this.pesel).getDate()}`;
+    patientAge(){
+    // metoda zwracająca wiek pacjenta (w latach) w dniu wizyty
+        return ageFullYearsInDay(this.date, this.pesel);
     }
 }
 
@@ -299,6 +295,17 @@ const findIcd10inVisits = (icd10toFind, visitsArr) => {
 
 const generateReportObj = () => {
 // generuje raport z wizyt jako obiekt
+
+    const wrongZ10 = (visits) => {
+    // funkcja generująca fragment raportu o błędnych świadczeniach Z10 (bilans, który jest poprawny tylko dla pacjentów pomiędzy 2 i 18 rokiem życia - w dniu wykonania tego bilansu)
+        const z10 = findIcd10inVisits('Z10', visits).filter(currVisit => {
+            currVisit.age = currVisit.patientAge();
+            return currVisit.patientAge() > 33;
+        });
+
+        return z10;
+    }
+
     const reportObj = {};
 
     // raport z danych z błędami i ostrzeżeniami przy wczytywaniu
@@ -325,11 +332,8 @@ const generateReportObj = () => {
     }
 
     // raport wizyt posiadających icd10 Z10
-    const z10 = findIcd10inVisits('Z10', visits).map(currVisit => {
-        currVisit.dateOfBirth();
-        return currVisit;
-    });
-    reportObj.z10 = z10;
+    
+    reportObj.wrongZ10 = wrongZ10(visits);
 
     return reportObj;
 }
