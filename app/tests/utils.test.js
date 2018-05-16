@@ -106,32 +106,66 @@ describe('Module utils', () => {
             
         });
 
-        it('should return false when given pesel empty, undefined, false or null', () => {
-            expect(birthDateFromPesel('').getFullYear()).toBeFalsy()
-            expect(birthDateFromPesel(undefined).getFullYear()).toBeFalsy()
-            expect(birthDateFromPesel(false).getFullYear()).toBeFalsy()
-            expect(birthDateFromPesel(null).getFullYear()).toBeFalsy()
+        it('should return undefined when given pesel is empty', () => {
+            expect(birthDateFromPesel('')).toNotExist();
+        });
+
+        it('should return undefined when given pesel is undefined', () => {
+            expect(birthDateFromPesel(undefined)).toNotExist();
+        });
+
+        it('should return undefined when given pesel is false', () => {
+            expect(birthDateFromPesel(false)).toNotExist();
+        });
+
+        it('should return undefined when given pesel is null', () => {
+            expect(birthDateFromPesel(null)).toNotExist();
+        });
+
+        it('should return undefined when given pesel shorter than 11 chars ', () => {
+            expect(birthDateFromPesel('8511123321')).toNotExist();
+        });
+
+        it('should return undefined when given pesel cant include proper birthdate ', () => {
+            expect(birthDateFromPesel('aaaaaaaaaaaaaaaaaaaaaaaaaa')).toNotExist();
+            expect(birthDateFromPesel('84109912211')).toNotExist();
         });
     });
 
     describe('ageFullYearsInDay()', () => {
 
-        it('should return proper age (in given day) in full years for pesel', () => {
-            
-            expect(ageFullYearsInDay('2018-05-08', '16250700000')).toBe(2); //osoba urodzona 7 maja 2017 ukończyła 2 lata 1 dzień wcześniej
-            expect(ageFullYearsInDay('2018-05-08', '16250800000')).toBe(2); //osoba urodzona 8 maja 2017 ukończyła 2 lata w danym dniu
-            expect(ageFullYearsInDay('2018-05-08', '16250900000')).toBe(1); //osoba urodzona 9 maja 2017 ukończy 2 lata za 1 dzień
+        // dane do przetestowania
+        const personVisitTestData = [
+            { visitDate: '2018-05-08', pesel: '16250700000', expectedAge: 2, comment: 'day after 2nd birthday' },
+            { visitDate: '2018-05-08', pesel: '16250800000', expectedAge: 2, comment: 'exactly 2nd birthday' },
+            { visitDate: '2018-05-08', pesel: '16250900000', expectedAge: 1, comment: 'day before 2nd birthday' },
 
-            expect(ageFullYearsInDay('2018-01-02', '16210100000')).toBe(2); //osoba urodzona 1 stycznia 2016 ukończyła 2 lata 1 dzień wcześniej
-            expect(ageFullYearsInDay('2018-01-01', '16210100000')).toBe(2); //osoba urodzona 1 stycznia 2016 ukończyła 2 lata w danym dniu
-            expect(ageFullYearsInDay('2017-12-31', '16210100000')).toBe(1); //osoba urodzona 1 stycznia 2016 ukończy 2 lata za 1 dzień
+            { visitDate: '2018-01-02', pesel: '16210100000', expectedAge: 2, comment: 'day after 2nd birthday' },
+            { visitDate: '2018-01-01', pesel: '16210100000', expectedAge: 2, comment: 'exactly 2nd birthday' },
+            { visitDate: '2017-12-31', pesel: '16210100000', expectedAge: 1, comment: 'day before 2nd birthday' },
 
-            expect(ageFullYearsInDay('2018-01-01', '15323100000')).toBe(2); //osoba urodzona 31 grudnia 2015 ukończyła 2 lata 1 dzień wcześniej
-            expect(ageFullYearsInDay('2017-12-31', '15323100000')).toBe(2); //osoba urodzona 31 grudnia 2015 ukończyła 2 lata w danym dniu
-            expect(ageFullYearsInDay('2017-12-30', '15323100000')).toBe(1); //osoba urodzona 31 grudnia 2015 ukończy 2 lata za 1 dzień
+            { visitDate: '2018-01-01', pesel: '15323100000', expectedAge: 2, comment: 'day after 2nd birthday' },
+            { visitDate: '2017-12-31', pesel: '15323100000', expectedAge: 2, comment: 'exactly 2nd birthday' },
+            { visitDate: '2017-12-30', pesel: '15323100000', expectedAge: 1, comment: 'day before 2nd birthday' },
+
+            { visitDate: '2018-02-28', pesel: '16222900000', expectedAge: 2, comment: 'leap year - day before exactly 2nd birthday' },
+            { visitDate: '2018-03-01', pesel: '16222900000', expectedAge: 2, comment: 'leap year - day after exactly 2nd birthday' },
+
+            { visitDate: '2020-02-29', pesel: '16222900000', expectedAge: 4, comment: 'leap year - exactly 4th birthday' },
+            { visitDate: '2020-02-28', pesel: '16222900000', expectedAge: 3, comment: 'leap year - day before exactly 4th birthday' },
+            { visitDate: '2020-03-01', pesel: '16222900000', expectedAge: 4, comment: 'leap year - day after exactly 4th birthday' },
+        ];
+
+        // TEST Z POWYŻSZYCH DANYCH
+        personVisitTestData.forEach(test => {
+            const birthdate = birthDateFromPesel(test.pesel); //wyliczenie daty urodzenia na potrzeby wyświetlenia
+
+            it(`should return age ${test.expectedAge} for visit date ${test.visitDate} born ${birthdate.getFullYear()}-${birthdate.getMonth()+1}-${birthdate.getDate()} and pesel ${test.pesel} (${test.comment})`, () => {
             
+                expect(ageFullYearsInDay(test.visitDate, test.pesel)).toBe(test.expectedAge); //osoba urodzona 7 maja 2017 ukończyła 2 lata 1 dzień wcześniej
+                
+            });
         });
-
 
     });
 });

@@ -49,14 +49,19 @@ const deepCopy = (sourceObj) => {
 }
 
 const birthDateFromPesel = (pesel) => {
-// zwraca datę (obiekt Date) urodzenia na podstawie numeru pesel
+// zwraca datę (obiekt Date) urodzenia na podstawie numeru pesel (gdzie pesel jest stringiem)
+
+    if(!(typeof pesel === 'string' && pesel.trim().length > 10)){
+    // jeśli pesel nie jest stringiem o długości większej niż 10, to na pewno nie może być peselem
+    // kończy działanie funkcji jako undefined
+        return;
+    }
 
     // standardowo - pesel z lat 1900 - 1999 - do miesiąca nie jest dodawana żadna liczba
     let baseYear = 1900;
     const redMonth = parseInt(pesel.slice(2,4));
     let birthMonth = redMonth - 1; //miesiąc urodzenia wg numeracji, gdzie 0 to styczeń
     const birthDate = parseInt(pesel.slice(4,6)); //dzień miesiąca
-    
     
     if(redMonth > 80){
     // pesel z lat 1800 - 1899 - do miesiąca dodawane jest 80
@@ -77,7 +82,20 @@ const birthDateFromPesel = (pesel) => {
     }
     
     const birthYear = baseYear + parseInt(pesel.slice(0,2)); //wyliczenie roku urodzenia
+
+    if(isNaN(redMonth) || isNaN(birthDate) || isNaN(birthYear)){
+    // jeśli nie udało się przekonwertować początku peselu na datę urodzenia
+        return false;
+    }
+
+    
     let birth = new Date(birthYear, birthMonth, birthDate, 0, 0, 0, 0);
+    if(birthDate !== birth.getDate()){
+    // jeśli wartość liczby odpowiadającą dniom w peselu jest inny od numeru dnia, to podano w pesel dzień, który nie istnieje
+    // funkcja zwraca undefined
+        return;
+    }
+
     return birth;
 }
 
@@ -86,13 +104,22 @@ const ageFullYearsInDay = (dayStr, pesel) => {
 // dayStr jest stringiem w formacie 2018-05-08, który da się przekonwertować na Date()
 
     const dayDate = new Date(dayStr);
-    // wyliczenie różnic w latach na podstawie numeru roku (np. 2018 - 2016)
-    const birthDate = birthDateFromPesel(pesel);
-    let fullYears = dayDate.getFullYear() - birthDate.getFullYear();
+    
+    const bornDate = birthDateFromPesel(pesel);
+    if(!bornDate) return; //jeśli birthDateFromPesel zwróciła undefined, to funkcja także zwraca undefined
+
+    let fullYears = dayDate.getFullYear() - bornDate.getFullYear(); //wyliczenie ile lat ma dana osoba rocznikowo  (np. 2018 - 2016 daje 2)
+    let nthBirthDay = new Date(bornDate.getFullYear() + fullYears, bornDate.getMonth(), bornDate.getDate())//wyliczenie kiedy faktycznie dana osoba skończy fullYears (czyli do roku urodzenia dodanie fullYears)
+
+    if(nthBirthDay.getDate() !== bornDate.getDate()){
+    // jeśli numery dni się nie zgadzają, to znaczy, że osoba została urodzona 29-02 w roku przestępnym, a rok wizyty nie jest przestępny
+    // wtedy nthBirthDay przestawiany jest na wcześniejszy 28-02
+    nthBirthDay = new Date(bornDate.getFullYear() + fullYears, bornDate.getMonth(), bornDate.getDate() - 1)
+    }
 
     // sprawdzenie, czy osoba już ukończyła wyliczoną powyżej ilośc lat
-    if(dayDate.getTime() < birthDate.getTime()){
-    // jeśli data wizyty jest wcześniejsza niż data ukończenia wieku fullYears to odejmuje od fullYears 1
+    if(dayDate.getTime() < nthBirthDay.getTime()){
+    // jeśli data jest wcześniejsza niż data ukończenia wieku fullYears to odejmuje od fullYears 1
         fullYears -= 1;
     }
 
