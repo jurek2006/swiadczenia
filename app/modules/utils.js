@@ -39,8 +39,9 @@ const splitDataToArr = (readTextData) => {
 // funkcja dzieląca zczytany plik z danymi na tabelę dwuwymiarową
 // - rozdział wierszy na podstawie znaku końca linii
 // - rozdział elementów w wierszu na podstawie tabulacji
-
-    return readTextData.split("\r\n").map(line =>line.split("\t")); 
+    const newReadTextData = readTextData.replace('\r', ''); //pozbycie się \r ze znaków końca linii, jeśli występują (bo w windows \r\n odpowiada \n)
+    debugger;
+    return newReadTextData.split("\n").map(line =>line.split("\t")); 
 }
 
 const deepCopy = (sourceObj) => {
