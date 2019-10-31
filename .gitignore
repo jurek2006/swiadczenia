@@ -3,3 +3,4 @@ data/
 exports/
 playground/
 
+app/config/hiddenConfig.js
