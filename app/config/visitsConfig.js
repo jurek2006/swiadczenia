@@ -26,4 +26,25 @@ const isPatronage = (icd10arr, icd9, visitName) => {
         );
 }
 
-module.exports = {isIcd10NotRequired, isPatronage}
+const nfzCodesAllowed = {
+    exportedToNfz: [
+        '5.01.00.0000089', //wizyta patronażowa
+        '5.01.00.0000104', //bilans zdrowia
+        '5.01.00.0000107', //wizyta patronażowa pielęgniarki poz
+        '5.01.00.0000121', //porada lekarska udzielona w miejscu udzielania świadczeń
+        '5.01.00.0000122', //porada lekarska udzielona w domu pacjenta
+    ],
+    notExported: [
+        '100204', //świadczenie profilaktyczne
+        '100205', //świadczenie diagnostyczne
+        '100206', //świadczenie pielęgnacyjne
+        '100207', //świadczenie lecznicze
+        '100208', //świadczenie rehabilitacyjne
+        '100302', //wizyta domowa
+    ]
+}
+
+const nfzCodeIsAllowed = (nfzCode) => nfzCodesAllowed.exportedToNfz.concat(nfzCodesAllowed.notExported).includes(nfzCode); //sprawdza czy przekazany kod jest na liście dozwolonych (obojętnie czy eksportowanych, czy nie)
+const nfzCodeIsExported = (nfzCode) => nfzCodesAllowed.exportedToNfz.includes(nfzCode); //sprawdza czy przekazany kod jest na liście kodów (świadczeń z tym kodem) eksportowanych do NFZ
+
+module.exports = {isIcd10NotRequired, isPatronage, nfzCodeIsAllowed, nfzCodeIsExported}

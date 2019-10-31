@@ -1,6 +1,6 @@
 const expect = require('expect');
 
-const {isIcd10NotRequired, isPatronage} = require('../config/visitsConfig');
+const {isIcd10NotRequired, isPatronage, nfzCodeIsAllowed, nfzCodeIsExported} = require('../config/visitsConfig');
 
 describe('config.js', () => {
     
@@ -126,6 +126,60 @@ describe('config.js', () => {
             expect(isPatronage([], '89.05', 'świadczenie diagnostyczne')).toBeFalsy();
             expect(isPatronage([], '89.05', 'świadczenie lecznicze')).toBeFalsy();
             
+        });
+    });
+
+    describe('nfzCodeIsAllowed()', () => {
+        it('should return true when allowed nfzCode given', () => {
+            // kody z eksportowanych do NFZ
+            expect(nfzCodeIsAllowed('5.01.00.0000089')).toBeTruthy(); 
+            expect(nfzCodeIsAllowed('5.01.00.0000104')).toBeTruthy(); 
+            expect(nfzCodeIsAllowed('5.01.00.0000107')).toBeTruthy(); 
+            expect(nfzCodeIsAllowed('5.01.00.0000121')).toBeTruthy(); 
+            expect(nfzCodeIsAllowed('5.01.00.0000122')).toBeTruthy(); 
+
+            // kody z nieeksportowanych do NFZ
+            expect(nfzCodeIsAllowed('100204')).toBeTruthy(); 
+            expect(nfzCodeIsAllowed('100205')).toBeTruthy(); 
+            expect(nfzCodeIsAllowed('100206')).toBeTruthy(); 
+            expect(nfzCodeIsAllowed('100207')).toBeTruthy(); 
+            expect(nfzCodeIsAllowed('100208')).toBeTruthy(); 
+            expect(nfzCodeIsAllowed('100302')).toBeTruthy(); 
+        });
+
+        it('should return false when not allowed nfzCode given', () => {
+            expect(nfzCodeIsAllowed('5.01.00.1001089')).toBeFalsy();
+            expect(nfzCodeIsAllowed('5.01.00.00001042')).toBeFalsy(); 
+            expect(nfzCodeIsAllowed('5.01.00.000010')).toBeFalsy(); 
+            expect(nfzCodeIsAllowed('')).toBeFalsy(); 
+            expect(nfzCodeIsAllowed(5.01)).toBeFalsy(); 
+            expect(nfzCodeIsAllowed(undefined)).toBeFalsy(); 
+
+            expect(nfzCodeIsAllowed('1002044')).toBeFalsy(); 
+            expect(nfzCodeIsAllowed('10020')).toBeFalsy(); 
+            expect(nfzCodeIsAllowed('102206')).toBeFalsy(); 
+            expect(nfzCodeIsAllowed('')).toBeFalsy(); 
+            expect(nfzCodeIsAllowed(100208)).toBeFalsy(); 
+            expect(nfzCodeIsAllowed(undefined)).toBeFalsy(); 
+        });
+    });
+
+    describe('nfzCodeIsExported', () => {
+        it('should return true for exported codes', () => {
+            expect(nfzCodeIsExported('5.01.00.0000089')).toBeTruthy(); 
+            expect(nfzCodeIsExported('5.01.00.0000104')).toBeTruthy(); 
+            expect(nfzCodeIsExported('5.01.00.0000107')).toBeTruthy(); 
+            expect(nfzCodeIsExported('5.01.00.0000121')).toBeTruthy(); 
+            expect(nfzCodeIsExported('5.01.00.0000122')).toBeTruthy(); 
+        });
+
+        it('should return false for not exported codes', () => {
+            expect(nfzCodeIsExported('100204')).toBeFalsy(); 
+            expect(nfzCodeIsExported('100205')).toBeFalsy(); 
+            expect(nfzCodeIsExported('100206')).toBeFalsy(); 
+            expect(nfzCodeIsExported('100207')).toBeFalsy(); 
+            expect(nfzCodeIsExported('100208')).toBeFalsy(); 
+            expect(nfzCodeIsExported('100302')).toBeFalsy(); 
         });
     });
 }); 
