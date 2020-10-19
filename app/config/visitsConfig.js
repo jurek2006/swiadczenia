@@ -38,6 +38,7 @@ const nfzCodesAllowed = {
     '5.01.00.0000107', //wizyta patronażowa pielęgniarki poz
     '5.01.00.0000121', //porada lekarska udzielona w miejscu udzielania świadczeń
     '5.01.00.0000122', //porada lekarska udzielona w domu pacjenta
+    '5.01.00.0000152', //teleporada lekarza poz
   ],
   notExported: [
     '100203', //wizyta w gabinecie pielęgniarki poz
