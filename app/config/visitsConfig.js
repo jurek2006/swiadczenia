@@ -39,6 +39,9 @@ const nfzCodesAllowed = {
     '5.01.00.0000121', //porada lekarska udzielona w miejscu udzielania świadczeń
     '5.01.00.0000122', //porada lekarska udzielona w domu pacjenta
     '5.01.00.0000152', //teleporada lekarza poz
+    '5.62.01.0000011', //teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2
+    '5.62.01.0000012', //porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2
+    '5.62.01.0000013', //lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2
   ],
   notExported: [
     '100203', //wizyta w gabinecie pielęgniarki poz
