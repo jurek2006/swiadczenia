@@ -107,28 +107,28 @@ describe('Module utils', () => {
         });
 
         it('should return undefined when given pesel is empty', () => {
-            expect(birthDateFromPesel('')).toNotExist();
+            expect(birthDateFromPesel('')).toBeUndefined();
         });
 
         it('should return undefined when given pesel is undefined', () => {
-            expect(birthDateFromPesel(undefined)).toNotExist();
+            expect(birthDateFromPesel(undefined)).toBeUndefined();
         });
 
         it('should return undefined when given pesel is false', () => {
-            expect(birthDateFromPesel(false)).toNotExist();
+            expect(birthDateFromPesel(false)).toBeUndefined();
         });
 
         it('should return undefined when given pesel is null', () => {
-            expect(birthDateFromPesel(null)).toNotExist();
+            expect(birthDateFromPesel(null)).toBeUndefined();
         });
 
         it('should return undefined when given pesel shorter than 11 chars ', () => {
-            expect(birthDateFromPesel('8511123321')).toNotExist();
+            expect(birthDateFromPesel('8511123321')).toBeUndefined();
         });
 
         it('should return undefined when given pesel cant include proper birthdate ', () => {
-            expect(birthDateFromPesel('aaaaaaaaaaaaaaaaaaaaaaaaaa')).toNotExist();
-            expect(birthDateFromPesel('84109912211')).toNotExist();
+            expect(birthDateFromPesel('aaaaaaaaaaaaaaaaaaaaaaaaaa')).toBeFalsy();
+            expect(birthDateFromPesel('84109912211')).toBeUndefined();
         });
     });
 

@@ -98,7 +98,7 @@ describe('Module anonymise', () => {
         } catch (err) {
             gotError = err;
         }
-        expect(gotError).toExist();
+        expect(gotError).toBeTruthy();
         expect(gotError.name).toBe('TypeError');
         expect(gotError.message).toBe(`visitsArr is not an array or contains not only Visit\'s class instances`);
     });
