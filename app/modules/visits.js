@@ -4,6 +4,7 @@ const path = require('path');
 
 const {isIcd10NotRequired, isPatronage, nfzCodeIsAllowed, nfzCodeIsExported} = require('../config/visitsConfig');
 const {saveJSON, deepCopy, birthDateFromPesel, ageFullYearsInDay} = require('../modules/utils');
+const { shouldBeCovidVisit, isValidCovidVisit, isCovidVerified } = require('./covid');
 
 class Visit{
     constructor(date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastName, staff, visitName){
@@ -86,7 +87,8 @@ const add = (date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastNam
     && typeof patientFirstName === 'string' && patientFirstName.trim().length > 0
     && typeof patientLastName === 'string' && patientLastName.trim().length === 1
     && typeof staff === 'string' && staff.trim().length > 0 
-    && typeof visitName === 'string' && visitName.trim().length > 0){
+    && typeof visitName === 'string' && visitName.trim().length > 0
+    && isCovidVerified({icd10, nfzCode, visitName})){
         const visitToAdd = new Visit(date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastName, staff, visitName);
         visits.push(visitToAdd);
 
