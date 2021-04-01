@@ -375,9 +375,9 @@ const generateReportObj = () => {
     return reportObj;
 }
 
-const saveReportAsJSON = () => {
+const saveReportAsJSON = ({fileNameSufix = ''} = {}) => {
 
-    saveJSON({ report: generateReportObj() }, '../../exports/report.json').then(res => console.log(res)).catch(err => console.log(err));
+    saveJSON({ report: generateReportObj() }, `../../exports/report_${fileNameSufix}.json`).then(res => console.log(res)).catch(err => console.log(err));
 }
 
 const saveAllToJSON = () => {

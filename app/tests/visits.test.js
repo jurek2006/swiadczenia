@@ -1032,7 +1032,7 @@ describe('Module visits', () => {
 
             visits.findMultipleVisitsOfDay();
             const reportObj = visits.generateReportObj();
-            visits.saveReportAsJSON(); //wyeksportowanie podglądu TYMCZASOWE
+            visits.saveReportAsJSON({fileNameSufix: 'should generate "covid visits" section in reportObj'}); //wyeksportowanie podglądu TYMCZASOWE
 
             // dla powyższych danych nie powinno być żadnych errorów ani ostrzeżeń
             expect(reportObj.dataWithErrors.length).toBe(0);
@@ -1048,19 +1048,6 @@ describe('Module visits', () => {
             expect(reportObj.covid.covidDetails.teleporady.length).toBe(3);
             expect(reportObj.covid.covidDetails.wizyty.length).toBe(2);
             expect(reportObj.covid.covidDetails.wizytyDomowe.length).toBe(4);
-
-            // sprawdzenie dubli
-            // expect(reportObj.multipleVisits['84101711210']['2018-03-01'].length).toBe(3);
-            // expect(reportObj.multipleVisits['84101711210']['2018-03-15'].length).toBe(3);
-            
-            // expect(reportObj.multipleVisits['84101711211']['2018-03-16'].length).toBe(3);
-            // expect(reportObj.multipleVisits['84101711211']['2018-03-02']).toBeUndefined();
-
-            // expect(reportObj.multipleVisits['84101711212']['2018-03-17'].length).toBe(3);
-            // expect(reportObj.multipleVisits['84101711212']['2018-03-03']).toBeUndefined();
-
-            // expect(reportObj.multipleVisits['84101711213']).toBeUndefined(); //nie ma żadnego dubla dla tego peselu
-
             
         });
         
