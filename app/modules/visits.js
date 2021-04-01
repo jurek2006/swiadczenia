@@ -65,6 +65,7 @@ class Visit{
 const visits = [];
 const dataWithErrors = []; //wiersze danych, których nie udało się skonwertować na dane wizyty
 const dataWithWarnings = []; //wiersze danych, które udało się skonwertować na dane wizyty, jednak wystąpiły pewne wątpliwości - stąd ostrzeżenia
+const dataWithCovid = []; //rows of data, successfully converted to visits, only proper covid visits
 const multipleVisitsOfDayObj = {}; //obiekt w którym zapisywane są 'wieloktorne wizyty w dniu' czyli jeśli jeden pacjent ma więcej niż jedną wizytę danego dnia (tylko wizyty eksportowane do NFZ, na podstawie kodu NFZ)
 
 const add = (date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastName, staff, visitName) => {
@@ -107,6 +108,20 @@ const add = (date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastNam
                 visitName
             });
         }
+        // if it is valid covid visit
+        // if(isValidCovidVisit({icd10, nfzCode, visitName})){
+        //     dataWithCovid.push({
+        //         date,
+        //         pesel,
+        //         icd10,
+        //         icd9,
+        //         nfzCode,
+        //         patientFirstName,
+        //         patientLastName,
+        //         staff,
+        //         visitName
+        //     })
+        // }
 
         return visitToAdd;
     } else {
@@ -226,13 +241,15 @@ const isVisitsArr = (variable) => Array.isArray(variable) && variable.every(curr
 const getData = {
     withErrors: () => dataWithErrors.slice(),
     withWarnings: () => dataWithWarnings.slice(),
+    withCovid: () => dataWithCovid.slice()
 }
 
 const removeAll = () => {
-// usuwa wszystkie elementy tablicy visits, czyści także tablice dataWithErrors i dataWithWarnings
+// usuwa wszystkie elementy tablicy visits, czyści także tablice dataWithErrors i dataWithWarnings (and dataWithCovid)
     while( (visits.shift()) !== undefined ) { };
     while( (dataWithErrors.shift()) !== undefined ) { };
     while( (dataWithWarnings.shift()) !== undefined ) { };
+    while( (dataWithCovid.shift()) !== undefined ) { };
     // czyszczenie multipleVisitsOfDayObj
     for (var prop in multipleVisitsOfDayObj) { if (multipleVisitsOfDayObj.hasOwnProperty(prop)) { delete multipleVisitsOfDayObj[prop]; } }
 }
@@ -313,6 +330,24 @@ const generateReportObj = () => {
     // raport z danych z błędami i ostrzeżeniami przy wczytywaniu
     reportObj.dataWithErrors = dataWithErrors;
     reportObj.dataWithWarnings = dataWithWarnings;
+    // reportObj.dataWithCovid = dataWithCovid; don't show directly on report
+
+    // generating covid section of report
+    const covidDetails = {
+        teleporady: filterVisits({nfzCode: '5.62.01.0000011'}),
+        wizyty: filterVisits({nfzCode: '5.62.01.0000012'}),
+        wizytyDomowe: filterVisits({nfzCode: '5.62.01.0000013'})
+    }
+    const covidSummary = {
+        teleporady: covidDetails.teleporady.length,
+        wizyty: covidDetails.wizyty.length,
+        wizytyDomowe: covidDetails.wizytyDomowe.length,
+    }
+
+    reportObj.covid = {
+        covidSummary,
+        covidDetails
+    };
 
     // raport z wielokrotnych wizyt pacjenta w dniu
     reportObj.multipleVisits = deepCopy(multipleVisitsOfDayObj); //kopia obiektu z "dublami"
@@ -352,6 +387,7 @@ const saveAllToJSON = () => {
         visits, 
         dataWithErrors,
         dataWithWarnings,
+        dataWithCovid,
         multipleVisitsOfDayObj
     }, '../../exports', 'dataAll.json').then(res => console.log(res)).catch(err => console.log(err));
 }
