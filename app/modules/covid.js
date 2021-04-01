@@ -1,6 +1,27 @@
 const _ = require('lodash');
 const { covidConfig } = require('../config/visitsConfig');
 
+// TEMP utils for report
+// converts array of visits to object grouped by pesel (and inside by date)
+// itemDataChanger is function applyied to every item (if present and is a function)
+const groupVisitArrayByPeselAndDate = ({visitArray, itemDataChanger = null}) => {
+    if(!Array.isArray(visitArray) || visitArray.length === 0){
+        return []
+    }
+
+    return foundPesels = visitArray.reduce((acc, item) => {
+            
+            !acc[item.pesel] && (acc[item.pesel] = {patient: `${item.patientLastName}. ${item.patientFirstName}`})
+            !acc[item.pesel][item.date] && (acc[item.pesel][item.date] = [])
+
+            acc[item.pesel][item.date] = [...acc[item.pesel][item.date], itemDataChanger && _.isFunction(itemDataChanger) ? itemDataChanger(item) : item]
+            return acc
+        }, 
+        {});
+}
+
+const prettyStringForVisitObj = ({staff, icd10, icd9, visitName, nfzCode} = {}) => `${staff} | ${Array.isArray(icd10) ? icd10.toString() : 'undefined'} | ${icd9} | ${visitName} | ${nfzCode}`
+
 // TEMP utils functions to move somewhere else
 // returns common elements of two arrays
 const getArrIntersection = (arr1, arr2) => arr1.filter(x => arr2.includes(x));
@@ -26,4 +47,4 @@ const isValidCovidVisit = ({icd10, nfzCode, visitName}) => {
 // returns true when visit is not covid (has no covid icd-10 nor nfzCode nor visitName for covid) or is covid but valid (icd10 and nfzCode and visitName)
 const isCovidVerified = ({icd10, nfzCode, visitName}) => !shouldBeCovidVisit({icd10, nfzCode, visitName}) || isValidCovidVisit({icd10, nfzCode, visitName})
 
-module.exports = {shouldBeCovidVisit, isValidCovidVisit, isCovidVerified, getArrIntersection, isAnyCommonElement, includesObject}
+module.exports = {shouldBeCovidVisit, isValidCovidVisit, isCovidVerified, getArrIntersection, isAnyCommonElement, includesObject, groupVisitArrayByPeselAndDate, prettyStringForVisitObj}

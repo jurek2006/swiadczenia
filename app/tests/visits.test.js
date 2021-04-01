@@ -1044,10 +1044,22 @@ describe('Module visits', () => {
             expect(reportObj.covid.covidSummary.wizyty).toBe(2);
             expect(reportObj.covid.covidSummary.wizytyDomowe).toBe(4);
 
-            // verify covid items
-            expect(reportObj.covid.covidDetails.teleporady.length).toBe(3);
-            expect(reportObj.covid.covidDetails.wizyty.length).toBe(2);
-            expect(reportObj.covid.covidDetails.wizytyDomowe.length).toBe(4);
+            // verify covid items in report format            
+            expect(reportObj.covid.covidDetails.teleporady["84101711219"]["2018-03-01"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2 | 5.62.01.0000011")).toBe(true);
+            expect(reportObj.covid.covidDetails.teleporady["84101711219"]["2018-03-01"].length).toBe(1);
+            expect(reportObj.covid.covidDetails.teleporady["84101711229"]["2018-03-01"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2 | 5.62.01.0000011")).toBe(true);
+            expect(reportObj.covid.covidDetails.teleporady["84101711229"]["2018-03-01"].length).toBe(1);
+            expect(reportObj.covid.covidDetails.teleporady["84101711259"]["2018-03-01"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2 | 5.62.01.0000011")).toBe(true);
+            expect(reportObj.covid.covidDetails.teleporady["84101711259"]["2018-03-01"].length).toBe(1);
+            
+            expect(reportObj.covid.covidDetails.wizyty["84101711219"]["2018-03-12"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2 | 5.62.01.0000012")).toBe(true);
+            expect(reportObj.covid.covidDetails.wizyty["84101711219"]["2018-03-12"].length).toBe(1);
+            expect(reportObj.covid.covidDetails.wizyty["88101711219"]["2018-03-15"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2 | 5.62.01.0000012")).toBe(true);
+            expect(reportObj.covid.covidDetails.wizyty["88101711219"]["2018-03-15"].length).toBe(1);
+
+            expect(reportObj.covid.covidDetails.wizytyDomowe["84101711219"]["2018-03-15"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2 | 5.62.01.0000013")).toBe(true);
+            expect(reportObj.covid.covidDetails.wizytyDomowe["84101711219"]["2018-03-15"].length).toBe(4); 
+            
             
         });
         

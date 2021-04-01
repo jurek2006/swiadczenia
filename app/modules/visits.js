@@ -4,7 +4,7 @@ const path = require('path');
 
 const {isIcd10NotRequired, isPatronage, nfzCodeIsAllowed, nfzCodeIsExported} = require('../config/visitsConfig');
 const {saveJSON, deepCopy, birthDateFromPesel, ageFullYearsInDay} = require('../modules/utils');
-const { shouldBeCovidVisit, isValidCovidVisit, isCovidVerified } = require('./covid');
+const { shouldBeCovidVisit, isValidCovidVisit, isCovidVerified, groupVisitArrayByPeselAndDate, prettyStringForVisitObj } = require('./covid');
 
 class Visit{
     constructor(date, pesel, icd10, icd9, nfzCode, patientFirstName, patientLastName, staff, visitName){
@@ -333,20 +333,28 @@ const generateReportObj = () => {
     // reportObj.dataWithCovid = dataWithCovid; don't show directly on report
 
     // generating covid section of report
-    const covidDetails = {
-        teleporady: filterVisits({nfzCode: '5.62.01.0000011'}),
-        wizyty: filterVisits({nfzCode: '5.62.01.0000012'}),
-        wizytyDomowe: filterVisits({nfzCode: '5.62.01.0000013'})
+    // covid data is not printed in report
+    const covidData = {
+        teleporady: filterVisits({visitName: 'teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2'}),
+        wizyty: filterVisits({visitName: 'porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2'}),
+        wizytyDomowe: filterVisits({visitName: 'lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2'})
     }
     const covidSummary = {
-        teleporady: covidDetails.teleporady.length,
-        wizyty: covidDetails.wizyty.length,
-        wizytyDomowe: covidDetails.wizytyDomowe.length,
+        teleporady: covidData.teleporady.length,
+        wizyty: covidData.wizyty.length,
+        wizytyDomowe: covidData.wizytyDomowe.length,
+    }
+
+    const covidDetails = {
+        teleporady: groupVisitArrayByPeselAndDate({visitArray: covidData.teleporady, itemDataChanger: prettyStringForVisitObj}),
+        wizyty: groupVisitArrayByPeselAndDate({visitArray: covidData.wizyty, itemDataChanger: prettyStringForVisitObj}),
+        wizytyDomowe: groupVisitArrayByPeselAndDate({visitArray: covidData.wizytyDomowe, itemDataChanger: prettyStringForVisitObj}),
     }
 
     reportObj.covid = {
         covidSummary,
         covidDetails
+        // covidData
     };
 
     // raport z wielokrotnych wizyt pacjenta w dniu

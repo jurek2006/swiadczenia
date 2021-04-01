@@ -26,8 +26,8 @@ describe('new tests for covid visits from 03.2021', () => {
         expect(visits.getData.withWarnings().length).toBe(0);
 
         expect(visits.filterVisits({nfzCode: '5.62.01.0000011'}).length).toBe(1);
-        expect(visits.filterVisits({nfzCode: '5.62.01.0000012'}).length).toBe(0);
-        expect(visits.filterVisits({nfzCode: '5.62.01.0000013'}).length).toBe(0);
+        expect(visits.filterVisits({visitName: 'porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2'}).length).toBe(0);
+        expect(visits.filterVisits({visitName: 'lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2'}).length).toBe(0);
     });
 
     it('Should add proper "covid - wizyta" visit', () => {
@@ -38,9 +38,9 @@ describe('new tests for covid visits from 03.2021', () => {
         expect(visits.getData.withErrors().length).toBe(0);
         expect(visits.getData.withWarnings().length).toBe(0);
 
-        expect(visits.filterVisits({nfzCode: '5.62.01.0000011'}).length).toBe(0);
-        expect(visits.filterVisits({nfzCode: '5.62.01.0000012'}).length).toBe(1);
-        expect(visits.filterVisits({nfzCode: '5.62.01.0000013'}).length).toBe(0);
+        expect(visits.filterVisits({visitName: 'teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2'}).length).toBe(0);
+        expect(visits.filterVisits({visitName: 'porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2'}).length).toBe(1);
+        expect(visits.filterVisits({visitName: 'lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2'}).length).toBe(0);
     });
 
     it('Should add proper "covid - wizyta domowa" visit', () => {
@@ -52,8 +52,8 @@ describe('new tests for covid visits from 03.2021', () => {
         expect(visits.getData.withWarnings().length).toBe(0);
 
         expect(visits.filterVisits({nfzCode: '5.62.01.0000011'}).length).toBe(0);
-        expect(visits.filterVisits({nfzCode: '5.62.01.0000012'}).length).toBe(0);
-        expect(visits.filterVisits({nfzCode: '5.62.01.0000013'}).length).toBe(1);
+        expect(visits.filterVisits({visitName: 'porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2'}).length).toBe(0);
+        expect(visits.filterVisits({visitName: 'lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2'}).length).toBe(1);
     });
 
     it('Should reject "covid - teleporada" visit with no "U07.1" code', () => {
@@ -65,8 +65,8 @@ describe('new tests for covid visits from 03.2021', () => {
         expect(visits.getData.withWarnings().length).toBe(0);
         
         expect(visits.filterVisits({nfzCode: '5.62.01.0000011'}).length).toBe(0);
-        expect(visits.filterVisits({nfzCode: '5.62.01.0000012'}).length).toBe(0);
-        expect(visits.filterVisits({nfzCode: '5.62.01.0000013'}).length).toBe(0);
+        expect(visits.filterVisits({visitName: 'porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2'}).length).toBe(0);
+        expect(visits.filterVisits({visitName: 'lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2'}).length).toBe(0);
     });
 
     it('Should reject "covid - wizyta" visit with no "U07.1" code', () => {

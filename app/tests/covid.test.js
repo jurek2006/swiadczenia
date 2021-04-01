@@ -1,7 +1,8 @@
 const expect = require('expect');
 const {covidConfig} = require('../config/visitsConfig');
 
-const {shouldBeCovidVisit, isValidCovidVisit, isCovidVerified, getArrIntersection, isAnyCommonElement, includesObject} = require('../modules/covid');
+const {shouldBeCovidVisit, isValidCovidVisit, isCovidVerified, getArrIntersection, isAnyCommonElement, includesObject, groupVisitArrayByPeselAndDate, prettyStringForVisitObj} = require('../modules/covid');
+const { saveJSON } = require('../modules/utils');
 
 describe('covid functions', () => {
 
@@ -403,3 +404,493 @@ describe('new utils', () => {
         })
     })
 })
+
+describe('new utils for report', () => {
+    describe('groupVisitArrayByPeselAndDate()', () => { 
+        it('Return empty array for visitArray which is not array', () => {
+            const visitArray = `It's not an array`;
+
+            const result = groupVisitArrayByPeselAndDate({visitArray});
+            
+            expect(Array.isArray(result)).toBe(true);
+            expect(result.length).toBe(0);
+        })
+        it('Return empty array for empty visitArray', () => {
+            const visitArray = [
+            ];
+
+            const result = groupVisitArrayByPeselAndDate({visitArray});
+            
+            expect(Array.isArray(result)).toBe(true);
+            expect(result.length).toBe(0);
+        })
+        it('groupVisitArrayByPeselAndDate() for one visit', () => {
+            const visitArray = [
+                {
+                date: "2018-03-01",
+                pesel: "84101711219",
+                icd10: [
+                    "A01",
+                    "B02",
+                    "C03",
+                    "U07.1"
+                ],
+                icd9: "89.00",
+                nfzCode: "5.62.01.0000011",
+                patientFirstName: "JERZY",
+                patientLastName: "S",
+                staff: "DUDYCZ JOLANTA",
+                visitName: "teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2"
+                },
+            ];
+
+            const result = groupVisitArrayByPeselAndDate({visitArray});
+            // saving report to preview
+            const fileNameSufix = 'groupVisitArrayByPeselAndDate() for one visit'
+            saveJSON(result, `../../exports/report_${fileNameSufix}.json`).then(res => console.log(res)).catch(err => console.log(err));
+            
+            // how many unique pesels
+            expect(Object.keys(result).length).toBe(1);
+            // check patient initials
+            expect(result["84101711219"].patient).toBe("S. JERZY");
+            // check how many items for pesel on days
+            expect(result["84101711219"]["2018-03-01"].length).toBe(1)
+        })
+        xit('groupVisitArrayByPeselAndDate() when as itemDataChanger passed not function should work as itemDataChanger does not exist', () => {
+            const fileNameSufix = 'groupVisitArrayByPeselAndDate() when as itemDataChanger passed not function should work as itemDataChanger does not exist  '
+            const visitArray = [
+                {
+                    "date": "2018-03-15",
+                    "pesel": "84101711219",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "JERZY",
+                    "patientLastName": "S",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-15",
+                    "pesel": "84101711219",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "JERZY",
+                    "patientLastName": "S",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-15",
+                    "pesel": "84101711219",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "JERZY",
+                    "patientLastName": "S",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-21",
+                    "pesel": "84101711219",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "JERZY",
+                    "patientLastName": "S",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-15",
+                    "pesel": "84101711299",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "ADAM",
+                    "patientLastName": "M",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-18",
+                    "pesel": "84101711299",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "ADAM",
+                    "patientLastName": "M",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-18",
+                    "pesel": "84101711299",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "X1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "ADAM",
+                    "patientLastName": "M",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                }
+            ]
+
+            const result = groupVisitArrayByPeselAndDate({visitArray, itemDataChanger: 'notFunction'});
+            // saving report to preview
+            
+            saveJSON(result, `../../exports/report_${fileNameSufix}.json`).then(res => console.log(res)).catch(err => console.log(err));
+            
+            // how many unique pesels
+            expect(Object.keys(result).length).toBe(2);
+            // check patient initials
+            expect(result["84101711219"].patient).toBe("S. JERZY");
+            expect(result["84101711299"].patient).toBe("M. ADAM");
+            // check how many items for pesel on days
+            expect(result["84101711219"]["2018-03-15"].length).toBe(3);
+            expect(result["84101711219"]["2018-03-21"].length).toBe(1);
+            expect(result["84101711299"]["2018-03-15"].length).toBe(1);
+            expect(result["84101711299"]["2018-03-18"].length).toBe(2);
+
+            // NOT FINISHED - should check if items are objects
+        })
+        it('groupVisitArrayByPeselAndDate() when as itemDataChanger passed prettyStringForVisitObj - item should be converted to string', () => {
+            const fileNameSufix = 'groupVisitArrayByPeselAndDate() when as itemDataChanger passed prettyStringForVisitObj - item should be converted to string'
+            const visitArray = [
+                {
+                    "date": "2018-03-15",
+                    "pesel": "84101711219",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "JERZY",
+                    "patientLastName": "S",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-15",
+                    "pesel": "84101711219",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "JERZY",
+                    "patientLastName": "S",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-15",
+                    "pesel": "84101711219",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "JERZY",
+                    "patientLastName": "S",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-21",
+                    "pesel": "84101711219",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "JERZY",
+                    "patientLastName": "S",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-15",
+                    "pesel": "84101711299",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "ADAM",
+                    "patientLastName": "M",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-18",
+                    "pesel": "84101711299",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "ADAM",
+                    "patientLastName": "M",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-18",
+                    "pesel": "84101711299",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "X1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "ADAM",
+                    "patientLastName": "M",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                }
+            ]
+
+            const result = groupVisitArrayByPeselAndDate({visitArray, itemDataChanger: prettyStringForVisitObj});
+            // saving report to preview
+            
+            saveJSON(result, `../../exports/report_${fileNameSufix}.json`).then(res => console.log(res)).catch(err => console.log(err));
+            
+            // how many unique pesels
+            expect(Object.keys(result).length).toBe(2);
+            // check patient initials
+            expect(result["84101711219"].patient).toBe("S. JERZY");
+            expect(result["84101711299"].patient).toBe("M. ADAM");
+            // check how many items for pesel on days
+            expect(result["84101711219"]["2018-03-15"].length).toBe(3);
+            expect(result["84101711219"]["2018-03-21"].length).toBe(1);
+            expect(result["84101711299"]["2018-03-15"].length).toBe(1);
+            expect(result["84101711299"]["2018-03-18"].length).toBe(2);
+
+            // verify if items are proper strings
+            expect(result["84101711219"]["2018-03-15"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2 | 5.62.01.0000013")).toBe(true);
+            expect(result["84101711219"]["2018-03-21"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2 | 5.62.01.0000013")).toBe(true);
+            expect(result["84101711299"]["2018-03-15"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2 | 5.62.01.0000013")).toBe(true);
+            expect(result["84101711299"]["2018-03-18"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2 | 5.62.01.0000013")).toBe(true);
+
+        })
+        it('groupVisitArrayByPeselAndDate() for multiple visits', () => {
+            const fileNameSufix = 'groupVisitArrayByPeselAndDate() for multiple visits'
+            const visitArray = [
+                {
+                    "date": "2018-03-15",
+                    "pesel": "84101711219",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "JERZY",
+                    "patientLastName": "S",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-15",
+                    "pesel": "84101711219",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "JERZY",
+                    "patientLastName": "S",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-15",
+                    "pesel": "84101711219",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "JERZY",
+                    "patientLastName": "S",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-21",
+                    "pesel": "84101711219",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "JERZY",
+                    "patientLastName": "S",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-15",
+                    "pesel": "84101711299",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "ADAM",
+                    "patientLastName": "M",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-18",
+                    "pesel": "84101711299",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "U07.1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "ADAM",
+                    "patientLastName": "M",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                },
+                {
+                    "date": "2018-03-18",
+                    "pesel": "84101711299",
+                    "icd10": [
+                        "A01",
+                        "B02",
+                        "C03",
+                        "X1"
+                    ],
+                    "icd9": "89.00",
+                    "nfzCode": "5.62.01.0000013",
+                    "patientFirstName": "ADAM",
+                    "patientLastName": "M",
+                    "staff": "DUDYCZ JOLANTA",
+                    "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+                }
+            ]
+
+            const result = groupVisitArrayByPeselAndDate({visitArray});
+            // saving report to preview
+            
+            saveJSON(result, `../../exports/report_${fileNameSufix}.json`).then(res => console.log(res)).catch(err => console.log(err));
+            
+            // how many unique pesels
+            expect(Object.keys(result).length).toBe(2);
+            // check patient initials
+            expect(result["84101711219"].patient).toBe("S. JERZY");
+            expect(result["84101711299"].patient).toBe("M. ADAM");
+            // check how many items for pesel on days
+            expect(result["84101711219"]["2018-03-15"].length).toBe(3);
+            expect(result["84101711219"]["2018-03-21"].length).toBe(1);
+            expect(result["84101711299"]["2018-03-15"].length).toBe(1);
+            expect(result["84101711299"]["2018-03-18"].length).toBe(2);
+        })
+    })
+
+    describe('prettyStringForVisitObj()', () => {
+        it('prettyStringForVisitObj() when not passed any param', () => {
+
+            expect(prettyStringForVisitObj()).toBe("undefined | undefined | undefined | undefined | undefined")
+        })
+        it('prettyStringForVisitObj() with data', () => {
+            const visitData = {
+                "date": "2018-03-15",
+                "pesel": "84101711219",
+                "icd10": [
+                    "A01",
+                    "B02",
+                    "C03",
+                    "U07.1"
+                ],
+                "icd9": "89.00",
+                "nfzCode": "5.62.01.0000013",
+                "patientFirstName": "JERZY",
+                "patientLastName": "S",
+                "staff": "DUDYCZ JOLANTA",
+                "visitName": "lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2"
+            }
+
+            expect(prettyStringForVisitObj(visitData)).toBe("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2 | 5.62.01.0000013")
+        })
+    })
+});
+
