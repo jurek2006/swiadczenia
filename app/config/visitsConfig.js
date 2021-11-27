@@ -48,6 +48,7 @@ const nfzCodesAllowed = {
     '5.01.00.0000121', //porada lekarska udzielona w miejscu udzielania świadczeń
     '5.01.00.0000122', //porada lekarska udzielona w domu pacjenta
     '5.01.00.0000152', //teleporada lekarza poz
+    '5.01.00.0000155', //porada receptowa lekarza poz
   ].concat(
     // additional - use also allowed nfzCodes from covid object:
     covidConfig.nfzCodeAndVisitName.map(({nfzCode}) => nfzCode )  
