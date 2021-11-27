@@ -31,6 +31,15 @@ const isPatronage = (icd10arr, icd9, visitName) => {
   );
 };
 
+const covidConfig = {
+  icd10: ['U07.1'], // list of allowed icd10 for covid visits
+  nfzCodeAndVisitName: [
+    // list of allowed nfzCodes and corresponding visit names
+    {nfzCode: '5.62.01.0000011', visitName: 'teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2'},
+    {nfzCode: '5.62.01.0000012', visitName: 'porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2'},
+    {nfzCode: '5.62.01.0000013', visitName: 'lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2'}
+  ],
+}
 const nfzCodesAllowed = {
   exportedToNfz: [
     '5.01.00.0000089', //wizyta patronażowa
@@ -39,10 +48,10 @@ const nfzCodesAllowed = {
     '5.01.00.0000121', //porada lekarska udzielona w miejscu udzielania świadczeń
     '5.01.00.0000122', //porada lekarska udzielona w domu pacjenta
     '5.01.00.0000152', //teleporada lekarza poz
-    '5.62.01.0000011', //teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2
-    '5.62.01.0000012', //porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2
-    '5.62.01.0000013', //lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2
-  ],
+  ].concat(
+    // additional - use also allowed nfzCodes from covid object:
+    covidConfig.nfzCodeAndVisitName.map(({nfzCode}) => nfzCode )  
+  ),
   notExported: [
     '100203', //wizyta w gabinecie pielęgniarki poz
     '100204', //świadczenie profilaktyczne
@@ -67,4 +76,5 @@ module.exports = {
   isPatronage,
   nfzCodeIsAllowed,
   nfzCodeIsExported,
+  covidConfig,
 };

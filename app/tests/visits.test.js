@@ -926,7 +926,7 @@ describe('Module visits', () => {
 
     });
 
-    xdescribe('visits.generateReportObj()', () => {
+    describe('visits.generateReportObj()', () => {
         beforeEach(() => {
             visits.removeAll();
         });
@@ -965,7 +965,7 @@ describe('Module visits', () => {
 
             visits.findMultipleVisitsOfDay();
             const reportObj = visits.generateReportObj();
-            visits.saveReportAsJSON(); //wyeksportowanie podglądu TYMCZASOWE
+            // visits.saveReportAsJSON(); //wyeksportowanie podglądu TYMCZASOWE
 
             // dla powyższych danych nie powinno być żadnych errorów ani ostrzeżeń
             expect(reportObj.dataWithErrors.length).toBe(0);
@@ -983,6 +983,83 @@ describe('Module visits', () => {
 
             expect(reportObj.multipleVisits['84101711213']).toBeUndefined(); //nie ma żadnego dubla dla tego peselu
 
+            
+        });
+
+        it('should generate "covid visits" section in reportObj', () => { 
+            // covid
+            // teleporady
+            visits.add('2018-03-01', '84101711219', ['A01', 'B02', 'C03', 'U07.1'], '89.00', '5.62.01.0000011', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2');
+            visits.add('2018-03-01', '84101711229', ['A01', 'B02', 'C03', 'U07.1'], '89.00', '5.62.01.0000011', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2');
+            visits.add('2018-03-01', '84101711259', ['A01', 'B02', 'C03', 'U07.1'], '89.00', '5.62.01.0000011', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2');
+            // wizyty
+            visits.add('2018-03-12', '84101711219', ['A01', 'B02', 'C03', 'U07.1'], '89.00', '5.62.01.0000012', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2');
+            visits.add('2018-03-15', '88101711219', ['A01', 'B02', 'C03', 'U07.1'], '89.00', '5.62.01.0000012', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2');
+            // wizyty domowe
+            visits.add('2018-03-15', '84101711219', ['A01', 'B02', 'C03', 'U07.1'], '89.00', '5.62.01.0000013', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2');
+            visits.add('2018-03-15', '84101711219', ['A01', 'B02', 'C03', 'U07.1'], '89.00', '5.62.01.0000013', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2');
+            visits.add('2018-03-15', '84101711219', ['A01', 'B02', 'C03', 'U07.1'], '89.00', '5.62.01.0000013', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2');
+            visits.add('2018-03-15', '84101711219', ['A01', 'B02', 'C03', 'U07.1'], '89.00', '5.62.01.0000013', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2');
+
+            // OTHER DATA
+            // ----------------------------------------------------------------------
+            // duble
+            visits.add('2018-03-01', '84101711210', ['Y11'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-01', '84101711210', ['Z11'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            visits.add('2018-03-01', '84101711210', ['A01', 'B02', 'C03'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            
+            visits.add('2018-03-15', '84101711210', [], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'świadczenie profilaktyczne');
+            visits.add('2018-03-15', '84101711210', ['Z76.2'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-15', '84101711210', ['Z39'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'DUDYCZ JOLANTA', 'wizyta patronażowa');
+            
+            // ----------------------------------------------------------------------
+            // bez dubli (nie powinno być raportowane):
+            visits.add('2018-03-02', '84101711211', ['B02', 'C03'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            // duble:
+            visits.add('2018-03-16', '84101711211', [], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'świadczenie diagnostyczne');
+            visits.add('2018-03-16', '84101711211', ['Z76.2'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-16', '84101711211', ['Z39.2'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'RAFAŁ CZEKIEL', 'wizyta patronażowa');
+            // ----------------------------------------------------------------------
+            // bez dubli (nie powinno być raportowane):
+            visits.add('2018-03-03', '84101711212', ['A01', 'B02', 'C03'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'BEATA NOWAK', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+            // duble
+            visits.add('2018-03-17', '84101711212', [], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'BEATA NOWAK', 'świadczenie pielęgnacyjne');
+            visits.add('2018-03-17', '84101711212', ['Z76.2'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa pielęgniarki poz');
+            visits.add('2018-03-17', '84101711212', ['Z39'], '89.05',  '5.01.00.0000121', 'JERZY', 'S', 'BEATA NOWAK', 'wizyta patronażowa');
+            // ----------------------------------------------------------------------
+            // bez dubli (nie powinno być raportowane):
+            visits.add('2018-03-15', '84101711213', ['X11'], '89.00',  '5.01.00.0000121', 'JERZY', 'S', 'RAHMAN IRENA', 'porada lekarska udzielona w miejscu udzielania świadczeń');
+
+            visits.findMultipleVisitsOfDay();
+            const reportObj = visits.generateReportObj();
+            visits.saveReportAsJSON({fileNameSufix: 'should generate "covid visits" section in reportObj'}); //wyeksportowanie podglądu TYMCZASOWE
+
+            // dla powyższych danych nie powinno być żadnych errorów ani ostrzeżeń
+            expect(reportObj.dataWithErrors.length).toBe(0);
+            expect(reportObj.dataWithWarnings.length).toBe(0);
+            // all covid visits
+            // expect(reportObj.dataWithCovid.length).toBe(9);
+            // verify summary
+            expect(reportObj.covid.covidSummary.teleporady).toBe(3);
+            expect(reportObj.covid.covidSummary.wizyty).toBe(2);
+            expect(reportObj.covid.covidSummary.wizytyDomowe).toBe(4);
+
+            // verify covid items in report format            
+            expect(reportObj.covid.covidDetails.teleporady["84101711219"]["2018-03-01"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2 | 5.62.01.0000011")).toBe(true);
+            expect(reportObj.covid.covidDetails.teleporady["84101711219"]["2018-03-01"].length).toBe(1);
+            expect(reportObj.covid.covidDetails.teleporady["84101711229"]["2018-03-01"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2 | 5.62.01.0000011")).toBe(true);
+            expect(reportObj.covid.covidDetails.teleporady["84101711229"]["2018-03-01"].length).toBe(1);
+            expect(reportObj.covid.covidDetails.teleporady["84101711259"]["2018-03-01"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | teleporada lekarska na rzecz pacjenta z dodatnim wynikiem testu SARS-CoV-2 | 5.62.01.0000011")).toBe(true);
+            expect(reportObj.covid.covidDetails.teleporady["84101711259"]["2018-03-01"].length).toBe(1);
+            
+            expect(reportObj.covid.covidDetails.wizyty["84101711219"]["2018-03-12"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2 | 5.62.01.0000012")).toBe(true);
+            expect(reportObj.covid.covidDetails.wizyty["84101711219"]["2018-03-12"].length).toBe(1);
+            expect(reportObj.covid.covidDetails.wizyty["88101711219"]["2018-03-15"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | porada lekarska na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2 | 5.62.01.0000012")).toBe(true);
+            expect(reportObj.covid.covidDetails.wizyty["88101711219"]["2018-03-15"].length).toBe(1);
+
+            expect(reportObj.covid.covidDetails.wizytyDomowe["84101711219"]["2018-03-15"].includes("DUDYCZ JOLANTA | A01,B02,C03,U07.1 | 89.00 | lekarska wizyta domowa na rzecz pacjenta z dodatnim wynikiem testu diagnostycznego w kierunku SARS-CoV-2 | 5.62.01.0000013")).toBe(true);
+            expect(reportObj.covid.covidDetails.wizytyDomowe["84101711219"]["2018-03-15"].length).toBe(4); 
+            
             
         });
         
